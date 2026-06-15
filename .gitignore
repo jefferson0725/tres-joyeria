@@ -42,8 +42,8 @@ contenido/*.avi
 *.suo
 *.sw?
 
-# Lock files
-package-lock.json
+# Lock files (no ignorar — necesario para builds reproducibles en producción)
+# package-lock.json
 
 # Otros
 contenido
