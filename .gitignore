@@ -47,3 +47,5 @@ contenido/*.avi
 
 # Otros
 contenido
+/backend/package-lock.json
+/frontend/package-lock.json
