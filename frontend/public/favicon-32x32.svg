@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="ring" x1="20%" y1="0%" x2="80%" y2="100%">
+      <stop offset="0%"   stop-color="#f8df70"/>
+      <stop offset="30%"  stop-color="#c89010"/>
+      <stop offset="65%"  stop-color="#a07008"/>
+      <stop offset="100%" stop-color="#f0c030"/>
+    </linearGradient>
+    <linearGradient id="lotus" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%"   stop-color="#f8df70"/>
+      <stop offset="50%"  stop-color="#c89010"/>
+      <stop offset="100%" stop-color="#f0c030"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo negro -->
+  <circle cx="50" cy="50" r="48" fill="#080808"/>
+
+  <!-- Anillo dorado -->
+  <circle cx="50" cy="50" r="46" fill="none" stroke="url(#ring)" stroke-width="4"/>
+
+  <!-- Pétalo izquierdo -->
+  <path d="M50,77 C44,63 27,42 17,38 C10,56 32,75 50,77Z"
+        fill="none" stroke="url(#lotus)" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Pétalo derecho -->
+  <path d="M50,77 C56,63 73,42 83,38 C90,56 68,75 50,77Z"
+        fill="none" stroke="url(#lotus)" stroke-width="3" stroke-linejoin="round"/>
+
+  <!-- Pétalo central (encima) -->
+  <path d="M50,77 C41,63 41,37 50,23 C59,37 59,63 50,77Z"
+        fill="none" stroke="url(#lotus)" stroke-width="3" stroke-linejoin="round"/>
+</svg>

@@ -1,0 +1,146 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* TRES Joyería — Design system
+   Color palette: Onyx #0B0B0B, Champagne Gold #C8A86B, Ivory #F7F3EE
+   Sans: Montserrat. Display/serif: Cormorant Garamond.
+   All colors are HSL.
+*/
+
+@layer base {
+  :root {
+    --font-sans: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Cormorant Garamond', 'Playfair Display', Georgia, serif;
+
+    /* Light theme — pure white luxury (Bracarli-inspired) */
+    --background: 0 0% 100%;             /* Pure white */
+    --foreground: 0 0% 7%;               /* Onyx #0B0B0B */
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 7%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 7%;
+
+    --primary: 0 0% 7%;                  /* Onyx */
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;               /* near-white gray */
+    --secondary-foreground: 0 0% 12%;
+
+    --muted: 0 0% 97%;                   /* very light neutral */
+    --muted-foreground: 0 0% 40%;        /* medium gray */
+
+    --accent: 38 42% 60%;                /* Champagne Gold #C8A86B */
+    --accent-foreground: 0 0% 7%;
+
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%;                  /* neutral light border */
+    --input: 0 0% 88%;
+    --ring: 38 42% 60%;                  /* gold focus rings */
+
+    --radius: 0.125rem;                  /* minimal radius */
+
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 7%) 0%, hsl(38 42% 35%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%) 0%, hsl(36 25% 96%) 100%);
+    --shadow-card: 0 10px 30px -10px hsl(0 0% 7% / 0.12);
+    --shadow-hover: 0 20px 40px -10px hsl(0 0% 7% / 0.18);
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .dark {
+    --background: 0 0% 7%;               /* Onyx */
+    --foreground: 36 33% 95%;
+
+    --card: 0 0% 10%;
+    --card-foreground: 36 33% 95%;
+
+    --popover: 0 0% 10%;
+    --popover-foreground: 36 33% 95%;
+
+    --primary: 38 42% 60%;               /* Gold becomes primary in dark */
+    --primary-foreground: 0 0% 7%;
+
+    --secondary: 0 0% 14%;
+    --secondary-foreground: 36 33% 95%;
+
+    --muted: 0 0% 14%;
+    --muted-foreground: 36 12% 70%;
+
+    --accent: 38 42% 60%;
+    --accent-foreground: 0 0% 7%;
+
+    --destructive: 0 70% 40%;
+    --destructive-foreground: 36 33% 95%;
+
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 38 42% 60%;
+
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 6%) 0%, hsl(38 42% 30%) 100%);
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 10%) 0%, hsl(0 0% 12%) 100%);
+    --shadow-card: 0 10px 30px -10px hsl(0 0% 0% / 0.4);
+    --shadow-hover: 0 20px 40px -10px hsl(0 0% 0% / 0.5);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: var(--font-sans);
+    font-feature-settings: 'liga' 1, 'calt' 1;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: 0;
+  }
+
+  h1 {
+    font-size: 2.75rem;
+    line-height: 1.15;
+  }
+
+  h2 {
+    font-size: 2rem;
+    line-height: 1.25;
+  }
+
+  h3 {
+    font-size: 1.5rem;
+    line-height: 1.35;
+  }
+
+  p {
+    line-height: 1.7;
+  }
+}
+
+/* Hide scrollbar but keep scrollable */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Shimmer animation for skeleton loaders */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite linear;
+}

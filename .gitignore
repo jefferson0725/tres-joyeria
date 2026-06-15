@@ -1,0 +1,49 @@
+# Dependencias
+node_modules/
+
+# Env
+.env
+.env.*
+.env.local
+.env.production
+
+# Build
+dist/
+dist-ssr/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Uploads (contenido subido por usuarios)
+backend/uploads/products/*
+!backend/uploads/products/.gitkeep
+backend/uploads/carousel/*
+!backend/uploads/carousel/.gitkeep
+
+# Imágenes y datos generados del frontend
+frontend/public/images/
+frontend/public/data.json
+
+# Contenido multimedia grande
+contenido/*.mp4
+contenido/*.mov
+contenido/*.avi
+
+# macOS
+.DS_Store
+
+# Editores
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.sw?
+
+# Lock files
+package-lock.json
+
+# Otros
+contenido

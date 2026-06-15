@@ -1,0 +1,1 @@
+﻿Prueba de caracteres: á é í ó ú ñ Á É Í Ó Ú Ñ catálogo descripción categoría tamaño
