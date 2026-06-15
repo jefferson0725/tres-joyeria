@@ -22,8 +22,8 @@ const PRODUCTS_PER_PAGE = 12; // Number of products to load per batch
 const Index = () => {
   const { wishlist } = useWishlist();
   const { settings } = useSettings();
-  // Auto-reload when data.json changes (checks every 5 seconds)
-  useDataVersion(5000);
+  // Auto-reload when data.json changes (checks every 30 seconds in production)
+  useDataVersion(30000);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
