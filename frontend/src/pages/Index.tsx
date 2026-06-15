@@ -216,7 +216,7 @@ const Index = () => {
   }, [loadMore, hasMore]);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       <Helmet>
         <title>
           {activeParentName === "Todos"
@@ -264,7 +264,7 @@ const Index = () => {
 
       {/* Main Content */}
       <main
-        className={`mx-auto max-w-7xl px-4 py-12 ${settings.show_carousel ? "pt-16" : "pt-32 md:pt-48"}`}
+        className={`flex-1 mx-auto w-full max-w-7xl px-4 py-12 ${settings.show_carousel ? "pt-16" : "pt-32 md:pt-48"}`}
       >
         {showFeatured && (
           <section className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
