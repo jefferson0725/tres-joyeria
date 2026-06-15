@@ -83,7 +83,7 @@ const Navbar: React.FC<NavbarProps> = ({
       {/* Top Navbar */}
       <nav className="border-b border-white/10">
         <div className="mx-auto max-w-7xl px-4 py-3">
-          <div className="flex items-center justify-between gap-4">
+          <div className="relative flex items-center justify-between gap-4">
 
             {/* Left: hamburger (mobile) */}
             <div className="flex items-center w-10">
@@ -95,8 +95,8 @@ const Navbar: React.FC<NavbarProps> = ({
               </button>
             </div>
 
-            {/* Center: logo */}
-            <div className="flex-1 flex justify-center md:justify-start">
+            {/* Center: logo — absolute para centrar respecto al ancho total */}
+            <div className="absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0 md:flex-1">
               <img
                 src="/logo-horizontal.png"
                 alt="TRES Joyería"
