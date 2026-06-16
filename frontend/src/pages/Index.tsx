@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import axios from "axios";
 import { Loader2 } from "lucide-react";
@@ -22,6 +23,7 @@ const PRODUCTS_PER_PAGE = 12; // Number of products to load per batch
 const Index = () => {
   const { wishlist } = useWishlist();
   const { settings } = useSettings();
+  const [searchParams] = useSearchParams();
   // Auto-reload when data.json changes (checks every 30 seconds in production)
   useDataVersion(30000);
 
@@ -41,6 +43,22 @@ const Index = () => {
     setActiveGemstones([]);
     setActiveMaterials([]);
   };
+
+  // Sync with URL params set by the global mobile drawer or search from other pages
+  useEffect(() => {
+    const cat = searchParams.get("categoria");
+    const sub = searchParams.get("sub");
+    const search = searchParams.get("search");
+    if (cat) {
+      setActiveParentName(cat);
+      setActiveSubName(sub || null);
+      setActiveGemstones([]);
+      setActiveMaterials([]);
+    }
+    if (search) {
+      setSearchQuery(search);
+    }
+  }, [searchParams]);
 
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [categoriesError, setCategoriesError] = useState<string | null>(null);
@@ -65,7 +83,9 @@ const Index = () => {
       setLoadingCategories(true);
       setCategoriesError(null);
       try {
-        const response = await axios.get("/data.json");
+        const response = await axios.get(`/data.json?_v=${Date.now()}`, {
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+        });
         const data = response.data;
         if (!mounted) return;
 
@@ -91,7 +111,9 @@ const Index = () => {
       setLoadingProducts(true);
       setProductsError(null);
       try {
-        const response = await axios.get("/data.json");
+        const response = await axios.get(`/data.json?_v=${Date.now()}`, {
+          headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' },
+        });
         const data = response.data;
         if (!mounted) return;
 
@@ -148,7 +170,13 @@ const Index = () => {
 
   const filteredProducts = products.filter((product) => {
     const catId: number | undefined = product?.category?.id;
-    const matchesSearch = String(product.name || "").toLowerCase().includes(searchQuery.toLowerCase());
+    const q = searchQuery.toLowerCase();
+    const matchesSearch = !q || (
+      String(product.name || "").toLowerCase().includes(q) ||
+      String(product.category?.name || "").toLowerCase().includes(q) ||
+      String(product.description || "").toLowerCase().includes(q) ||
+      String(product.material || "").toLowerCase().includes(q)
+    );
 
     // Category filter
     let matchesCat = true;
@@ -244,6 +272,9 @@ const Index = () => {
         subcategories={(categories.find((c) => c.name === activeParentName)?.subcategories ?? []).map((s) => s.name)}
         activeSubcategory={activeSubName}
         onSubcategorySelect={setActiveSubName}
+        categorySubcategoriesMap={Object.fromEntries(
+          categories.map((c) => [c.name, (c.subcategories || []).map((s) => s.name)])
+        )}
       />
 
       {/* Carousel — full viewport, no top padding (navbar overlays transparently) */}

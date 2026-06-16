@@ -43,7 +43,7 @@ const SocialFloat = () => {
       if (s.show_social_widget !== "true" && s.show_social_widget !== true) return;
       setSettings({
         show: true,
-        label: s.social_label || "SÍGUENOS",
+        label: s.social_label || "",
         facebook: s.social_facebook || "",
         instagram: s.social_instagram || "",
         youtube: s.social_youtube || "",
@@ -87,18 +87,20 @@ const SocialFloat = () => {
         ))}
       </div>
 
-      {/* Divider */}
-      <div className="w-full h-px bg-gray-100" />
-
-      {/* Label vertical */}
-      <div className="py-4 px-3 flex items-center justify-center">
-        <span
-          className="text-[9px] uppercase tracking-[0.2em] text-foreground/40 font-medium"
-          style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-        >
-          {settings.label}
-        </span>
-      </div>
+      {/* Label vertical — solo si hay texto */}
+      {settings.label && (
+        <>
+          <div className="w-full h-px bg-gray-100" />
+          <div className="py-4 px-3 flex items-center justify-center">
+            <span
+              className="text-[9px] uppercase tracking-[0.2em] text-foreground/40 font-medium"
+              style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+            >
+              {settings.label}
+            </span>
+          </div>
+        </>
+      )}
     </motion.div>
   );
 };

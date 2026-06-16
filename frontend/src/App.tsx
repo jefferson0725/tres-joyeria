@@ -5,6 +5,8 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SettingsProvider } from "@/context/SettingsContext";
+import { MobileMenuProvider } from "@/context/MobileMenuContext";
+import GlobalMobileDrawer from "@/components/GlobalMobileDrawer";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 const ProductPage = lazy(() => import("./pages/ProductPage"));
@@ -38,7 +40,9 @@ const App = () => (
             v7_relativeSplatPath: true,
           }}
         >
-          <Routes>
+          <MobileMenuProvider>
+            <GlobalMobileDrawer />
+            <Routes>
             <Route path="/" element={<Index />} />
             <Route
               path="/login"
@@ -89,6 +93,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          </MobileMenuProvider>
         </BrowserRouter>
       </TooltipProvider>
     </SettingsProvider>

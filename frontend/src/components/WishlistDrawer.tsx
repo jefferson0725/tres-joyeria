@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Trash2, Heart, Minus, Plus } from "lucide-react";
+import { X, Trash2, Heart } from "lucide-react";
 import { useWishlist } from "../hooks/useWishlist";
 import { useSettings } from "@/context/SettingsContext";
 import { formatPrice } from "@/utils/formatPrice";
@@ -11,9 +11,14 @@ interface WishlistDrawerProps {
   onClose: () => void;
 }
 
+const resolveImage = (src?: string | null) => {
+  if (!src) return "/placeholder.svg";
+  if (src.startsWith("/") || src.startsWith("http")) return src;
+  return `/images/${src}`;
+};
+
 const WishlistDrawer = ({ isOpen, onClose }: WishlistDrawerProps) => {
-  const { wishlist, removeFromWishlist, updateQuantity, clearWishlist } =
-    useWishlist();
+  const { wishlist, removeFromWishlist, clearWishlist } = useWishlist();
   const { settings } = useSettings();
   const [isAnimating, setIsAnimating] = useState(false);
   const [whatsappNumber, setWhatsappNumber] = useState<string>("573007571199");
@@ -46,11 +51,10 @@ const WishlistDrawer = ({ isOpen, onClose }: WishlistDrawerProps) => {
 
     if (wishlist.length > 0) {
       const productLines = wishlist.map((product) => {
-        const qty = product.quantity > 1 ? ` (x${product.quantity})` : "";
         if (product.selectedSize) {
-          return `• ${product.name} - ${product.selectedSize.size}${qty}`;
+          return `• ${product.name} - ${product.selectedSize.size}`;
         }
-        return `• ${product.name}${qty}`;
+        return `• ${product.name}`;
       });
       message += `\n${productLines.join("\n")}`;
     }
@@ -122,7 +126,7 @@ const WishlistDrawer = ({ isOpen, onClose }: WishlistDrawerProps) => {
                   {/* Image */}
                   <div className="w-20 h-20 flex-shrink-0 rounded-md overflow-hidden bg-muted">
                     <img
-                      src={product.image || "/placeholder.svg"}
+                      src={resolveImage(product.image)}
                       alt={product.name}
                       className="w-full h-full object-cover"
                     />
@@ -147,56 +151,6 @@ const WishlistDrawer = ({ isOpen, onClose }: WishlistDrawerProps) => {
                       </p>
                     )}
 
-                    {/* Quantity controls */}
-                    <div className="flex items-center gap-3 mt-3">
-                      <div className="inline-flex items-center bg-gray-100 rounded-full p-1">
-                        <button
-                          onClick={() =>
-                            updateQuantity(
-                              product.uniqueKey,
-                              product.quantity - 1,
-                            )
-                          }
-                          className="w-7 h-7 flex items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-50 transition-all hover:scale-105 active:scale-95 disabled:opacity-40 disabled:hover:scale-100"
-                          disabled={product.quantity <= 1}
-                        >
-                          <Minus className="w-3.5 h-3.5 text-gray-600" />
-                        </button>
-                        <input
-                          type="text"
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                          value={product.quantity === 0 ? "" : product.quantity}
-                          onChange={(e) => {
-                            const val = e.target.value;
-                            if (val === "" || /^\d+$/.test(val)) {
-                              updateQuantity(
-                                product.uniqueKey,
-                                val === "" ? 0 : parseInt(val),
-                              );
-                            }
-                          }}
-                          onBlur={(e) => {
-                            const val = parseInt(e.target.value);
-                            if (!val || val < 1) {
-                              updateQuantity(product.uniqueKey, 1);
-                            }
-                          }}
-                          className="w-10 text-center text-sm font-semibold text-gray-800 bg-transparent focus:outline-none"
-                        />
-                        <button
-                          onClick={() =>
-                            updateQuantity(
-                              product.uniqueKey,
-                              product.quantity + 1,
-                            )
-                          }
-                          className="w-7 h-7 flex items-center justify-center rounded-full bg-white shadow-sm hover:bg-gray-50 transition-all hover:scale-105 active:scale-95"
-                        >
-                          <Plus className="w-3.5 h-3.5 text-gray-600" />
-                        </button>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Remove button */}

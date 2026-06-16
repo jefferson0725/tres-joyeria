@@ -31,9 +31,10 @@ const ProductPage = () => {
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
   const [modalPrice, setModalPrice] = useState<number>(0);
+  const [navSearch, setNavSearch] = useState("");
 
   useEffect(() => {
-    axios.get("/data.json").then((res) => {
+    axios.get(`/data.json?_v=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }).then((res) => {
       const products: any[] = res.data.products || [];
       const found = products.find((p) => p.slug === slug);
       if (found) {
@@ -88,7 +89,7 @@ const ProductPage = () => {
     } else {
       addToWishlist({
         id: product.id,
-        image: product.image,
+        image: resolveImage(product.image),
         name: product.name,
         price: modalPrice,
         category: product.category?.name || "",
@@ -144,8 +145,9 @@ const ProductPage = () => {
         categories={[]}
         activeCategory="Todos"
         onCategorySelect={() => {}}
-        searchQuery=""
-        onSearchChange={() => {}}
+        searchQuery={navSearch}
+        onSearchChange={setNavSearch}
+        onSearchSubmit={(q) => navigate(`/?search=${encodeURIComponent(q)}`)}
         onWishlistClick={() => {}}
       />
 
