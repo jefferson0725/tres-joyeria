@@ -88,12 +88,16 @@ const Navbar: React.FC<NavbarProps> = ({
     return () => window.removeEventListener("scroll", onScroll);
   }, [overlayMode]);
 
+  // Keep the header fully visible while searching, regardless of scroll position
+  // (otherwise the overlay fade hides it when the user scrolls back toward the top).
+  const effectiveOpacity = isSearchOpen || showSuggestions ? 1 : navOpacity;
+
   return (
     <div
       className="fixed top-0 left-0 right-0 z-40 bg-foreground"
       style={{
-        opacity: navOpacity,
-        pointerEvents: navOpacity < 0.05 ? "none" : "auto",
+        opacity: effectiveOpacity,
+        pointerEvents: effectiveOpacity < 0.05 ? "none" : "auto",
       }}
     >
       {/* Top Navbar */}
@@ -229,40 +233,45 @@ const Navbar: React.FC<NavbarProps> = ({
                     onFocus={() => setShowSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                   />
-                  {showSuggestions && suggestions.length > 0 && (
-                    <div className="absolute z-50 mt-1 w-full bg-foreground border border-white/10 rounded-md shadow-2xl overflow-hidden top-full left-0">
-                      {suggestions.map((p) => {
-                        if (!p.slug) return null;
-                        const catName = typeof p.category === "string"
-                          ? p.category
-                          : (p.category as { name?: string } | undefined)?.name ?? "";
-                        return (
-                          <Link
-                            key={p.id}
-                            to={`/producto/${p.slug}`}
-                            onClick={() => { setShowSuggestions(false); setIsSearchOpen(false); }}
-                            className="flex items-center gap-3 px-3 py-2 text-white/80 hover:bg-white/10 text-sm"
-                          >
-                            <img
-                              src={resolveImage(p.image)}
-                              alt={p.name}
-                              className="h-8 w-8 rounded object-cover flex-shrink-0"
-                            />
-                            <span className="flex-1 min-w-0">
-                              <span className="block truncate">{p.name}</span>
-                              {catName && (
-                                <span className="block text-xs text-white/40 truncate">{catName}</span>
-                              )}
-                            </span>
-                          </Link>
-                        );
-                      })}
-                    </div>
-                  )}
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* Mobile suggestions — rendered outside the overflow-hidden collapsible
+              wrapper so the dropdown isn't clipped. Normal flow expands the fixed navbar. */}
+          {isSearchOpen && showSuggestions && suggestions.length > 0 && (
+            <div className="md:hidden pb-3">
+              <div className="bg-foreground border border-white/10 rounded-md shadow-2xl overflow-hidden">
+                {suggestions.map((p) => {
+                  if (!p.slug) return null;
+                  const catName = typeof p.category === "string"
+                    ? p.category
+                    : (p.category as { name?: string } | undefined)?.name ?? "";
+                  return (
+                    <Link
+                      key={p.id}
+                      to={`/producto/${p.slug}`}
+                      onClick={() => { setShowSuggestions(false); setIsSearchOpen(false); }}
+                      className="flex items-center gap-3 px-3 py-2 text-white/80 hover:bg-white/10 text-sm"
+                    >
+                      <img
+                        src={resolveImage(p.image)}
+                        alt={p.name}
+                        className="h-8 w-8 rounded object-cover flex-shrink-0"
+                      />
+                      <span className="flex-1 min-w-0">
+                        <span className="block truncate">{p.name}</span>
+                        {catName && (
+                          <span className="block text-xs text-white/40 truncate">{catName}</span>
+                        )}
+                      </span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </nav>
 
