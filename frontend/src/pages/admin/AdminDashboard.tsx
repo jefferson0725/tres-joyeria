@@ -39,6 +39,80 @@ const menuItems = [
   { id: 7, label: "Redes Sociales", icon: <Share2 className="w-5 h-5" /> },
 ];
 
+interface SidebarBodyProps {
+  tab: number;
+  setTab: (id: number) => void;
+  exportLoading: boolean;
+  handleExportData: () => void;
+  handleLogout: () => void;
+  onItemClick?: () => void;
+}
+
+const SidebarBody = ({ tab, setTab, exportLoading, handleExportData, handleLogout, onItemClick }: SidebarBodyProps) => (
+  <>
+    <div className="p-6 border-b-2 border-white/10 flex-shrink-0 flex flex-col items-center">
+      <img src="/logo-horizontal.png" alt="TRES" className="h-14 w-auto object-contain mb-3" />
+      <h1
+        className="text-sm font-medium text-white/60 text-center uppercase tracking-widest"
+        style={{ fontFamily: "Poppins, sans-serif" }}
+      >
+        Panel de Administración
+      </h1>
+    </div>
+
+    <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
+      {menuItems.map((item) => (
+        <button
+          key={item.id}
+          type="button"
+          onClick={() => {
+            setTab(item.id);
+            onItemClick?.();
+          }}
+          className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-200 ${
+            tab === item.id
+              ? "bg-white text-foreground shadow-lg scale-105"
+              : "text-white hover:bg-white/10 hover:scale-102"
+          }`}
+        >
+          {item.icon}
+          <span>{item.label}</span>
+        </button>
+      ))}
+    </nav>
+
+    <div className="p-4 border-t-2 border-white/10 space-y-2 flex-shrink-0">
+      <Button
+        variant="outline"
+        onClick={handleExportData}
+        disabled={exportLoading}
+        className="w-full border-2 border-white/20 bg-white/10 text-white hover:bg-white hover:text-foreground transition-all"
+      >
+        {exportLoading ? (
+          <div className="flex items-center gap-2">
+            <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
+            Exportando...
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Download className="w-4 h-4" />
+            Exportar Datos
+          </div>
+        )}
+      </Button>
+
+      <Button
+        variant="outline"
+        onClick={handleLogout}
+        className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-red-500 text-white border-white/20 hover:border-red-500 transition-all"
+      >
+        <LogOut className="w-4 h-4" />
+        Cerrar Sesión
+      </Button>
+    </div>
+  </>
+);
+
 const AdminDashboard: React.FC = () => {
   const [tab, setTab] = useState(4);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -102,70 +176,6 @@ const AdminDashboard: React.FC = () => {
 
   const currentMenuItem = menuItems.find((item) => item.id === tab);
 
-  const SidebarBody = ({ onItemClick }: { onItemClick?: () => void }) => (
-    <>
-      <div className="p-6 border-b-2 border-white/10 flex-shrink-0 flex flex-col items-center">
-        <img src="/logo-horizontal.png" alt="TRES" className="h-14 w-auto object-contain mb-3" />
-        <h1
-          className="text-sm font-medium text-white/60 text-center uppercase tracking-widest"
-          style={{ fontFamily: "Poppins, sans-serif" }}
-        >
-          Panel de Administración
-        </h1>
-      </div>
-
-      <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-        {menuItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => {
-              setTab(item.id);
-              onItemClick?.();
-            }}
-            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-all duration-200 ${
-              tab === item.id
-                ? "bg-white text-foreground shadow-lg scale-105"
-                : "text-white hover:bg-white/10 hover:scale-102"
-            }`}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </button>
-        ))}
-      </nav>
-
-      <div className="p-4 border-t-2 border-white/10 space-y-2 flex-shrink-0">
-        <Button
-          variant="outline"
-          onClick={handleExportData}
-          disabled={exportLoading}
-          className="w-full border-2 border-white/20 bg-white/10 text-white hover:bg-white hover:text-foreground transition-all"
-        >
-          {exportLoading ? (
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 border-2 border-green-600 border-t-transparent rounded-full animate-spin" />
-              Exportando...
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              <Download className="w-4 h-4" />
-              Exportar Datos
-            </div>
-          )}
-        </Button>
-
-        <Button
-          variant="outline"
-          onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-red-500 text-white border-white/20 hover:border-red-500 transition-all"
-        >
-          <LogOut className="w-4 h-4" />
-          Cerrar Sesión
-        </Button>
-      </div>
-    </>
-  );
-
   return (
     <motion.div
       className="min-h-screen flex bg-gray-50"
@@ -180,7 +190,7 @@ const AdminDashboard: React.FC = () => {
         animate={{ x: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
       >
-        <SidebarBody />
+        <SidebarBody tab={tab} setTab={setTab} exportLoading={exportLoading} handleExportData={handleExportData} handleLogout={handleLogout} />
       </motion.aside>
 
       {/* Sidebar - Mobile */}
@@ -204,6 +214,7 @@ const AdminDashboard: React.FC = () => {
             >
               <div className="absolute top-4 right-4 z-10">
                 <button
+                  type="button"
                   onClick={() => setSidebarOpen(false)}
                   className="p-2 rounded-lg hover:bg-white/10 transition-colors text-white"
                   aria-label="Cerrar menú"
@@ -211,7 +222,7 @@ const AdminDashboard: React.FC = () => {
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              <SidebarBody onItemClick={() => setSidebarOpen(false)} />
+              <SidebarBody tab={tab} setTab={setTab} exportLoading={exportLoading} handleExportData={handleExportData} handleLogout={handleLogout} onItemClick={() => setSidebarOpen(false)} />
             </motion.aside>
           </>
         )}
@@ -222,8 +233,10 @@ const AdminDashboard: React.FC = () => {
         <header className="lg:hidden bg-foreground shadow-md sticky top-0 z-30">
           <div className="px-4 py-4 flex items-center justify-between">
             <button
+              type="button"
               onClick={() => setSidebarOpen(true)}
               className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white"
+              aria-label="Abrir menú"
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />

@@ -26,10 +26,11 @@ const ContactSettings = () => {
         error={phone.error}
         saveLabel="Guardar Teléfono"
       >
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label htmlFor="contact-phone" className="block text-sm font-semibold text-gray-700 mb-2">
           Teléfono de Contacto
         </label>
         <Input
+          id="contact-phone"
           type="text"
           placeholder="+57 300 123 4567"
           value={phone.value}
@@ -47,10 +48,11 @@ const ContactSettings = () => {
         error={email.error}
         saveLabel="Guardar Email"
       >
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label htmlFor="contact-email" className="block text-sm font-semibold text-gray-700 mb-2">
           Email de Contacto
         </label>
         <Input
+          id="contact-email"
           type="email"
           placeholder="contacto@ejemplo.com"
           value={email.value}
@@ -68,10 +70,11 @@ const ContactSettings = () => {
         saveLabel="Guardar Configuración"
       >
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label htmlFor="show-address" className="block text-sm font-semibold text-gray-700">
             Visibilidad de dirección
           </label>
           <Switch
+            id="show-address"
             checked={showAddress.value}
             onCheckedChange={showAddress.setValue}
             className="data-[state=checked]:bg-foreground"
@@ -93,10 +96,11 @@ const ContactSettings = () => {
         error={address.error}
         saveLabel="Guardar Dirección"
       >
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label htmlFor="contact-address" className="block text-sm font-semibold text-gray-700 mb-2">
           Dirección de la Tienda
         </label>
         <Input
+          id="contact-address"
           type="text"
           placeholder="Calle 123 #45-67, Ciudad, País"
           value={address.value}

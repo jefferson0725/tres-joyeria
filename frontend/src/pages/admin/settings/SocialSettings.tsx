@@ -8,15 +8,15 @@ import useSetting from "@/hooks/useSetting";
 import apiFetch from "../../../utils/api";
 import { toast } from "@/hooks/use-toast";
 
+const SOCIAL_OPTS = { autoExport: false };
+
 const SocialSettings = () => {
-  // Disable per-hook export — we save all six in one batch and export once
-  const opts = { autoExport: false };
-  const widget = useSetting<boolean>("show_social_widget", false, opts);
-  const label = useSetting<string>("social_label", "SÍGUENOS", opts);
-  const facebook = useSetting<string>("social_facebook", "", opts);
-  const instagram = useSetting<string>("social_instagram", "", opts);
-  const youtube = useSetting<string>("social_youtube", "", opts);
-  const tiktok = useSetting<string>("social_tiktok", "", opts);
+  const widget = useSetting<boolean>("show_social_widget", false, SOCIAL_OPTS);
+  const label = useSetting<string>("social_label", "SÍGUENOS", SOCIAL_OPTS);
+  const facebook = useSetting<string>("social_facebook", "", SOCIAL_OPTS);
+  const instagram = useSetting<string>("social_instagram", "", SOCIAL_OPTS);
+  const youtube = useSetting<string>("social_youtube", "", SOCIAL_OPTS);
+  const tiktok = useSetting<string>("social_tiktok", "", SOCIAL_OPTS);
 
   const [saving, setSaving] = useState(false);
 
@@ -73,8 +73,9 @@ const SocialSettings = () => {
       </div>
 
       <div className="p-4 bg-white rounded-lg border border-gray-200 space-y-2">
-        <label className="text-sm font-semibold text-gray-700">Texto del widget</label>
+        <label htmlFor="social-label" className="text-sm font-semibold text-gray-700">Texto del widget</label>
         <Input
+          id="social-label"
           value={label.value}
           onChange={(e) => label.setValue(e.target.value)}
           placeholder="SÍGUENOS"
@@ -88,8 +89,9 @@ const SocialSettings = () => {
         <p className="text-xs text-gray-400">Deja vacío para ocultar esa red</p>
         {links.map(({ key, label: name, hook, placeholder }) => (
           <div key={key} className="space-y-1">
-            <label className="text-xs font-medium text-gray-600">{name}</label>
+            <label htmlFor={`social-${key}`} className="text-xs font-medium text-gray-600">{name}</label>
             <Input
+              id={`social-${key}`}
               value={hook.value}
               onChange={(e) => hook.setValue(e.target.value)}
               placeholder={placeholder}

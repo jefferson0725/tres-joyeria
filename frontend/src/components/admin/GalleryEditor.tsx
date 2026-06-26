@@ -19,8 +19,10 @@ interface GalleryEditorProps {
   hint?: string;
 }
 
+const EMPTY_EXISTING: ExistingImage[] = [];
+
 const GalleryEditor = ({
-  existing = [],
+  existing = EMPTY_EXISTING,
   newFiles,
   onAddFiles,
   onRemoveExisting,
@@ -31,7 +33,7 @@ const GalleryEditor = ({
 
   return (
     <div className="space-y-2">
-      <label className="text-sm font-semibold text-gray-700">Galería de imágenes</label>
+      <label htmlFor="gallery-upload" className="text-sm font-semibold text-gray-700">Galería de imágenes</label>
       <div className="border-2 border-dashed border-gray-300 rounded-xl p-4">
         {hasItems && (
           <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-3">
@@ -51,7 +53,7 @@ const GalleryEditor = ({
               </div>
             ))}
             {newFiles.map((f, idx) => (
-              <div key={`new-${idx}`} className="relative aspect-square overflow-hidden rounded-md bg-gray-100">
+              <div key={f.preview} className="relative aspect-square overflow-hidden rounded-md bg-gray-100">
                 <img src={f.preview} alt="" className="h-full w-full object-cover" />
                 <button
                   type="button"
@@ -66,6 +68,7 @@ const GalleryEditor = ({
           </div>
         )}
         <input
+          id="gallery-upload"
           type="file"
           accept="image/*"
           multiple

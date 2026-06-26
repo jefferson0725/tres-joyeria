@@ -1,6 +1,6 @@
 import { Link, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
-import { Heart, Sparkles } from "lucide-react";
+import { ShoppingCart, Sparkles } from "lucide-react";
 import { formatPrice } from "@/utils/formatPrice";
 import { useWishlist } from "../hooks/useWishlist";
 import { useSettings } from "@/context/SettingsContext";
@@ -44,6 +44,10 @@ interface ProductCardProps {
   sku?: string | null;
 }
 
+const EMPTY_SIZES: ProductSize[] = [];
+const EMPTY_IMAGES: ProductImage[] = [];
+const EMPTY_GEMSTONES: Gemstone[] = [];
+
 const resolveImageSrc = (src?: string | null) => {
   if (!src) return "/placeholder.svg";
   if (src.startsWith("/") || src.startsWith("http")) return src;
@@ -58,12 +62,12 @@ const ProductCard = ({
   description,
   price,
   category,
-  sizes = [],
-  images = [],
+  sizes = EMPTY_SIZES,
+  images = EMPTY_IMAGES,
   material,
   purity,
   weightGrams,
-  gemstones = [],
+  gemstones = EMPTY_GEMSTONES,
   featured = false,
   sku,
 }: ProductCardProps) => {
@@ -117,12 +121,13 @@ const ProductCard = ({
         )}
 
         <button
+          type="button"
           onClick={handleToggleWishlist}
           className={`absolute top-3 left-3 z-10 p-2 rounded-full backdrop-blur-sm transition-all ${
             inWishlist ? "bg-destructive/90 hover:bg-destructive" : "bg-background/90 hover:bg-background"
           }`}
         >
-          <Heart className={`h-5 w-5 ${inWishlist ? "fill-background text-background" : "text-foreground"}`} />
+          <ShoppingCart className={`h-5 w-5 ${inWishlist ? "fill-background text-background" : "text-foreground"}`} />
         </button>
 
         {featured && (

@@ -45,7 +45,22 @@ const Carousel = () => {
       const res = await fetch(`${API_URL}/api/carousel`);
       if (res.ok) {
         const data = await res.json();
-        setImages(data.images || []);
+        const imgs: CarouselImage[] = data.images || [];
+        setImages(imgs);
+
+        if (imgs.length > 0) {
+          const preload = (src: string) =>
+            new Promise<void>((resolve) => {
+              const img = new Image();
+              img.onload = () => resolve();
+              img.onerror = () => resolve();
+              img.src = src;
+            });
+
+          const preloads = [preload(imgs[0].url)];
+          if (imgs[0].mobileUrl) preloads.push(preload(imgs[0].mobileUrl));
+          await Promise.all(preloads);
+        }
       }
     } catch (err) {
       console.error("Error loading carousel images:", err);
@@ -137,6 +152,7 @@ const Carousel = () => {
       {images.length > 1 && (
         <>
           <button
+            type="button"
             onClick={goToPrevious}
             className="absolute left-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white text-gray-800 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
             aria-label="Imagen anterior"
@@ -144,6 +160,7 @@ const Carousel = () => {
             <ChevronLeft className="w-6 h-6" />
           </button>
           <button
+            type="button"
             onClick={goToNext}
             className="absolute right-4 top-1/2 -translate-y-1/2 p-2 rounded-full bg-white/80 hover:bg-white text-gray-800 transition-all opacity-0 group-hover:opacity-100 hover:scale-110 active:scale-95"
             aria-label="Imagen siguiente"
@@ -156,9 +173,10 @@ const Carousel = () => {
       {/* Indicators */}
       {images.length > 1 && (
         <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
-          {images.map((_, index) => (
+          {images.map((image, index) => (
             <button
-              key={index}
+              type="button"
+              key={image.filename}
               onClick={() => goToSlide(index)}
               className={`transition-all ${
                 index === currentIndex

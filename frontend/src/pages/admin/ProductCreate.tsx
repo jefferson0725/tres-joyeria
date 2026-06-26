@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Package, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,7 +32,7 @@ const ProductCreate: React.FC = () => {
 
   // Non-form state
   const [categories, setCategories] = useState<Array<any>>([]);
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const imageFileRef = useRef<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
@@ -68,25 +68,26 @@ const ProductCreate: React.FC = () => {
     setCategoryId(""); setSku(""); setMaterial(""); setPurity("");
     setWeightGrams(""); setGender(""); setFeatured(false);
     setGemstones([]); setSizes([]);
-    setImageFile(null); setImagePreview(null);
+    imageFileRef.current = null; setImagePreview(null);
     setGalleryFiles([]); setGalleryPreviews([]);
   };
 
   const uploadGalleryImages = async (productId: number) => {
-    for (let i = 0; i < galleryFiles.length; i++) {
-      const file = galleryFiles[i];
-      const ext = file.name.split(".").pop() || "jpg";
-      const filename = `${productId}-gallery-${Date.now()}-${i}.${ext}`;
-      const savedFilename = await imageUpload.upload(file, filename);
-      const res = await apiFetch(`/api/product-images/product/${productId}`, {
-        method: "POST",
-        body: JSON.stringify({ url: savedFilename, displayOrder: i, isPrimary: false }),
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Error guardando imagen de galería");
-      }
-    }
+    const ts = Date.now();
+    await Promise.all(
+      galleryFiles.map(async (file, i) => {
+        const ext = file.name.split(".").pop() || "jpg";
+        const savedFilename = await imageUpload.upload(file, `${productId}-gallery-${ts}-${i}.${ext}`);
+        const res = await apiFetch(`/api/product-images/product/${productId}`, {
+          method: "POST",
+          body: JSON.stringify({ url: savedFilename, displayOrder: i, isPrimary: false }),
+        });
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || "Error guardando imagen de galería");
+        }
+      })
+    );
   };
 
   const handleCreate = async () => {
@@ -129,8 +130,8 @@ const ProductCreate: React.FC = () => {
       if (!res.ok) throw new Error(data.error || "Error creando producto");
 
       // Main image upload
-      if (imageFile && data.id) {
-        const ext = imageFile.name.split(".").pop() || "jpg";
+      if (imageFileRef.current && data.id) {
+        const ext = imageFileRef.current.name.split(".").pop() || "jpg";
         const sanitizedName = name.toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-+|-+$/g, "")
@@ -142,7 +143,7 @@ const ProductCreate: React.FC = () => {
         const t = toast({ title: "Guardando imagen", description: "0%" });
 
         try {
-          const savedFilename = await imageUpload.upload(imageFile, filename, {
+          const savedFilename = await imageUpload.upload(imageFileRef.current, filename, {
             onProgress: (pct) => {
               setUploadProgress(pct);
               t.update({ id: t.id, description: `${pct}%` });
@@ -224,11 +225,11 @@ const ProductCreate: React.FC = () => {
             uploadingImage={uploadingImage}
             uploadProgress={uploadProgress}
             onSelectImage={(f) => {
-              setImageFile(f);
+              imageFileRef.current = f;
               setImagePreview(URL.createObjectURL(f));
             }}
             onRemoveImage={() => {
-              setImageFile(null);
+              imageFileRef.current = null;
               setImagePreview(null);
             }}
             galleryNew={galleryFiles.map((f, i) => ({ file: f, preview: galleryPreviews[i] }))}

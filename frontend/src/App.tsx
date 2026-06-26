@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { SettingsProvider } from "@/context/SettingsContext";
 import { MobileMenuProvider } from "@/context/MobileMenuContext";
 import GlobalMobileDrawer from "@/components/GlobalMobileDrawer";
+import CookieConsent from "@/components/CookieConsent";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 const ProductPage = lazy(() => import("./pages/ProductPage"));
@@ -42,6 +43,7 @@ const App = () => (
         >
           <MobileMenuProvider>
             <GlobalMobileDrawer />
+            <CookieConsent />
             <Routes>
             <Route path="/" element={<Index />} />
             <Route

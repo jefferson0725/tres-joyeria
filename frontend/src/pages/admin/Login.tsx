@@ -48,7 +48,7 @@ const Login: React.FC = () => {
   // Entrance animation on mount
   React.useEffect(() => {
     cardControls.start({ opacity: 1, scale: 1, transition: { duration: 0.6, delay: 0.3 } });
-  }, []);
+  }, [cardControls]);
 
   const onSubmit = async (data: LoginFormData) => {
     setError(null);
@@ -121,11 +121,12 @@ const Login: React.FC = () => {
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6" noValidate>
             {/* Username/Email Input */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <label htmlFor="identifier" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                 <User className="w-4 h-4" />
                 Usuario o Correo
               </label>
               <Input
+                id="identifier"
                 type="text"
                 placeholder="Ingresa tu usuario o email"
                 disabled={loading}
@@ -143,12 +144,13 @@ const Login: React.FC = () => {
 
             {/* Password Input */}
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+              <label htmlFor="password" className="text-sm font-semibold text-gray-700 flex items-center gap-2">
                 <Lock className="w-4 h-4" />
                 Contraseña
               </label>
               <div className="relative">
                 <Input
+                  id="password"
                   type={showPassword ? "text" : "password"}
                   placeholder="Ingresa tu contraseña"
                   disabled={loading}

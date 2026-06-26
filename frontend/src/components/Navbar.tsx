@@ -1,10 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { Search, Heart, Menu, X, ChevronDown } from "lucide-react";
+import { Search, ShoppingCart, Menu, X, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { useWishlist } from "@/hooks/useWishlist";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMobileMenu } from "@/context/MobileMenuContext";
+
+const EMPTY_SUBCATEGORIES: string[] = [];
+const EMPTY_SUBCAT_MAP: Record<string, string[]> = {};
+
+type ProductSuggestion = {
+  id: number;
+  name: string;
+  slug?: string | null;
+  image?: string | null;
+  category?: { name?: string } | string;
+};
+const EMPTY_PRODUCTS: ProductSuggestion[] = [];
 
 interface NavbarProps {
   categories: string[];
@@ -19,6 +31,7 @@ interface NavbarProps {
   onSubcategorySelect?: (name: string | null) => void;
   onSearchSubmit?: (query: string) => void;
   categorySubcategoriesMap?: Record<string, string[]>;
+  products?: ProductSuggestion[];
 }
 
 const Navbar: React.FC<NavbarProps> = ({
@@ -29,17 +42,39 @@ const Navbar: React.FC<NavbarProps> = ({
   onSearchChange,
   onWishlistClick,
   overlayMode = false,
-  subcategories = [],
+  subcategories = EMPTY_SUBCATEGORIES,
   activeSubcategory = null,
   onSubcategorySelect,
   onSearchSubmit,
-  categorySubcategoriesMap = {},
+  categorySubcategoriesMap = EMPTY_SUBCAT_MAP,
+  products = EMPTY_PRODUCTS,
 }) => {
   const [navOpacity, setNavOpacity] = useState(overlayMode ? 0 : 1);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const { wishlist } = useWishlist();
   const { openMenu } = useMobileMenu();
+
+  const resolveImage = (src?: string | null): string => {
+    if (!src) return "/placeholder.svg";
+    if (src.startsWith("/") || src.startsWith("http")) return src;
+    return `/images/${src}`;
+  };
+
+  const suggestions: ProductSuggestion[] = searchQuery.trim().length >= 3
+    ? products
+        .filter((p) => {
+          const q = searchQuery.toLowerCase();
+          const nameMatch = p.name.toLowerCase().includes(q);
+          const catName = typeof p.category === "string"
+            ? p.category
+            : (p.category as { name?: string } | undefined)?.name ?? "";
+          const catMatch = catName.toLowerCase().includes(q);
+          return nameMatch || catMatch;
+        })
+        .slice(0, 6)
+    : [];
 
   useEffect(() => {
     if (!overlayMode) {
@@ -69,6 +104,7 @@ const Navbar: React.FC<NavbarProps> = ({
             {/* Left: hamburger (mobile) */}
             <div className="flex items-center w-10">
               <button
+                type="button"
                 onClick={openMenu}
                 className="md:hidden p-1 rounded-lg hover:bg-white/10 text-white"
               >
@@ -100,12 +136,45 @@ const Navbar: React.FC<NavbarProps> = ({
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && onSearchSubmit?.(searchQuery)}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                   />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute z-50 mt-1 w-full bg-foreground border border-white/10 rounded-md shadow-2xl overflow-hidden top-full left-0">
+                      {suggestions.map((p) => {
+                        if (!p.slug) return null;
+                        const catName = typeof p.category === "string"
+                          ? p.category
+                          : (p.category as { name?: string } | undefined)?.name ?? "";
+                        return (
+                          <Link
+                            key={p.id}
+                            to={`/producto/${p.slug}`}
+                            onClick={() => setShowSuggestions(false)}
+                            className="flex items-center gap-3 px-3 py-2 text-white/80 hover:bg-white/10 text-sm"
+                          >
+                            <img
+                              src={resolveImage(p.image)}
+                              alt={p.name}
+                              className="h-8 w-8 rounded object-cover flex-shrink-0"
+                            />
+                            <span className="flex-1 min-w-0">
+                              <span className="block truncate">{p.name}</span>
+                              {catName && (
+                                <span className="block text-xs text-white/40 truncate">{catName}</span>
+                              )}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Mobile search toggle */}
               <button
+                type="button"
                 onClick={() => {
                   setIsSearchOpen((v) => {
                     if (!v) setTimeout(() => searchInputRef.current?.focus(), 50);
@@ -120,12 +189,13 @@ const Navbar: React.FC<NavbarProps> = ({
 
               {/* Wishlist */}
               <button
+                type="button"
                 onClick={onWishlistClick}
                 className="relative p-2 hover:bg-white/10 rounded-full transition-all hover:scale-105 active:scale-95"
                 title="Lista de deseos"
               >
-                <Heart
-                  className={`h-5 w-5 ${wishlist.length > 0 ? "fill-red-500 text-red-500" : "text-white"}`}
+                <ShoppingCart
+                  className={`h-5 w-5 ${wishlist.length > 0 ? "text-red-500" : "text-white"}`}
                 />
                 {wishlist.length > 0 && (
                   <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
@@ -156,7 +226,39 @@ const Navbar: React.FC<NavbarProps> = ({
                     value={searchQuery}
                     onChange={(e) => onSearchChange(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && onSearchSubmit?.(searchQuery)}
+                    onFocus={() => setShowSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
                   />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <div className="absolute z-50 mt-1 w-full bg-foreground border border-white/10 rounded-md shadow-2xl overflow-hidden top-full left-0">
+                      {suggestions.map((p) => {
+                        if (!p.slug) return null;
+                        const catName = typeof p.category === "string"
+                          ? p.category
+                          : (p.category as { name?: string } | undefined)?.name ?? "";
+                        return (
+                          <Link
+                            key={p.id}
+                            to={`/producto/${p.slug}`}
+                            onClick={() => { setShowSuggestions(false); setIsSearchOpen(false); }}
+                            className="flex items-center gap-3 px-3 py-2 text-white/80 hover:bg-white/10 text-sm"
+                          >
+                            <img
+                              src={resolveImage(p.image)}
+                              alt={p.name}
+                              className="h-8 w-8 rounded object-cover flex-shrink-0"
+                            />
+                            <span className="flex-1 min-w-0">
+                              <span className="block truncate">{p.name}</span>
+                              {catName && (
+                                <span className="block text-xs text-white/40 truncate">{catName}</span>
+                              )}
+                            </span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
@@ -177,6 +279,7 @@ const Navbar: React.FC<NavbarProps> = ({
               return (
                 <div key={category} className="group relative">
                   <button
+                    type="button"
                     onClick={() => onCategorySelect(category)}
                     className={`flex items-center gap-1 whitespace-nowrap text-[11px] uppercase tracking-[0.14em] font-medium transition-colors pb-3 ${
                       isActive
@@ -198,6 +301,7 @@ const Navbar: React.FC<NavbarProps> = ({
                       <div className="bg-foreground border border-white/10 shadow-2xl shadow-black/40 rounded-sm min-w-[160px] py-2">
                         {subs.map((sub) => (
                           <button
+                            type="button"
                             key={sub}
                             onClick={() => {
                               onCategorySelect(category);

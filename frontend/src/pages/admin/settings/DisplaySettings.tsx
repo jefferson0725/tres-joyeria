@@ -34,10 +34,11 @@ const DisplaySettings = () => {
         saveLabel="Guardar Configuración"
       >
         <div className="flex items-center justify-between">
-          <label className="block text-sm font-semibold text-gray-700">
+          <label htmlFor="show-prices" className="block text-sm font-semibold text-gray-700">
             Visibilidad de precios
           </label>
           <Switch
+            id="show-prices"
             checked={prices.value}
             onCheckedChange={prices.setValue}
             className="data-[state=checked]:bg-foreground"
@@ -59,10 +60,11 @@ const DisplaySettings = () => {
         error={whatsapp.error}
         saveLabel="Guardar Número"
       >
-        <label className="block text-sm font-semibold text-gray-700 mb-2">
+        <label htmlFor="whatsapp-number" className="block text-sm font-semibold text-gray-700 mb-2">
           Número de WhatsApp (con código de país)
         </label>
         <Input
+          id="whatsapp-number"
           type="text"
           placeholder="573001234567"
           value={whatsapp.value}

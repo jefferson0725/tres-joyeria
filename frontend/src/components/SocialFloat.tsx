@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
-import axios from "axios";
 import { motion } from "framer-motion";
+import { useDataJson } from "@/hooks/useDataJson";
 
 interface SocialSettings {
   show: boolean;
@@ -35,24 +34,19 @@ const icons: Record<string, JSX.Element> = {
 };
 
 const SocialFloat = () => {
-  const [settings, setSettings] = useState<SocialSettings | null>(null);
+  const { data } = useDataJson();
+  const raw = data?.settings ?? {};
 
-  useEffect(() => {
-    axios.get("/data.json").then((res) => {
-      const s = res.data.settings || {};
-      if (s.show_social_widget !== "true" && s.show_social_widget !== true) return;
-      setSettings({
-        show: true,
-        label: s.social_label || "",
-        facebook: s.social_facebook || "",
-        instagram: s.social_instagram || "",
-        youtube: s.social_youtube || "",
-        tiktok: s.social_tiktok || "",
-      });
-    }).catch(() => {});
-  }, []);
+  if (raw.show_social_widget !== "true" && raw.show_social_widget !== true) return null;
 
-  if (!settings?.show) return null;
+  const settings: SocialSettings = {
+    show: true,
+    label: raw.social_label || "",
+    facebook: raw.social_facebook || "",
+    instagram: raw.social_instagram || "",
+    youtube: raw.social_youtube || "",
+    tiktok: raw.social_tiktok || "",
+  };
 
   const networks = [
     { key: "facebook", url: settings.facebook },

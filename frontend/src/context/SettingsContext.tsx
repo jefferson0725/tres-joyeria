@@ -1,11 +1,5 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  ReactNode,
-} from "react";
-import axios from "axios";
+import React, { createContext, useContext, useMemo, ReactNode } from "react";
+import { useDataJson } from "@/hooks/useDataJson";
 
 interface Settings {
   show_prices: boolean;
@@ -19,70 +13,33 @@ interface SettingsContextType {
   error: string | null;
 }
 
-const SettingsContext = createContext<SettingsContextType | undefined>(
-  undefined,
-);
+const DEFAULT_SETTINGS: Settings = {
+  show_prices: false,
+  whatsapp_number: "573007571199",
+  show_carousel: false,
+};
 
-export const SettingsProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
-  const [settings, setSettings] = useState<Settings>({
-    show_prices: false, // Default to false for safety
-    whatsapp_number: "573007571199",
-    show_carousel: false,
-  });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-  useEffect(() => {
-    const loadSettings = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+export const SettingsProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { data, isLoading, isError } = useDataJson();
 
-        // Try to load from /data.json first (public data)
-        try {
-          const res = await axios.get("/data.json");
-          const data = res.data;
-
-          // Extract settings with proper type conversion
-          const showPrices =
-            data.settings?.show_prices === "true" ||
-            data.settings?.show_prices === true;
-
-          const showCarousel =
-            data.settings?.show_carousel === "true" ||
-            data.settings?.show_carousel === true;
-
-          const whatsappNumber =
-            data.settings?.whatsapp_number || "573007571199";
-
-          setSettings({
-            show_prices: showPrices,
-            whatsapp_number: whatsappNumber,
-            show_carousel: showCarousel,
-          });
-        } catch (err) {
-          console.warn("data.json not found, using default settings");
-          // Keep default settings if data.json doesn't exist
-        }
-      } catch (err) {
-        console.error("Error loading settings:", err);
-        setError("Failed to load settings");
-        // Keep default settings on error
-      } finally {
-        setLoading(false);
-      }
+  const settings = useMemo<Settings>(() => {
+    if (!data?.settings) return DEFAULT_SETTINGS;
+    const s = data.settings;
+    return {
+      show_prices: s.show_prices === "true" || s.show_prices === true,
+      whatsapp_number: s.whatsapp_number || "573007571199",
+      show_carousel: s.show_carousel === "true" || s.show_carousel === true,
     };
+  }, [data]);
 
-    loadSettings();
-  }, []);
-
-  return (
-    <SettingsContext.Provider value={{ settings, loading, error }}>
-      {children}
-    </SettingsContext.Provider>
+  const value = useMemo(
+    () => ({ settings, loading: isLoading, error: isError ? "Failed to load settings" : null }),
+    [settings, isLoading, isError]
   );
+
+  return <SettingsContext.Provider value={value}>{children}</SettingsContext.Provider>;
 };
 
 export const useSettings = (): SettingsContextType => {

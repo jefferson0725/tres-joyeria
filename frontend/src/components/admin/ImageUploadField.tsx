@@ -17,7 +17,7 @@ const ImageUploadField = ({
   compact = false,
 }: ImageUploadFieldProps) => (
   <div className="space-y-2">
-    {label && <label className="text-sm font-semibold text-gray-700">{label}</label>}
+    {label && <label htmlFor="image-upload-field" className="text-sm font-semibold text-gray-700">{label}</label>}
     <div
       className={`border-2 border-dashed border-gray-300 rounded-${compact ? "lg" : "xl"} ${compact ? "p-3" : "p-6"} hover:border-accent transition-colors`}
     >
@@ -48,6 +48,7 @@ const ImageUploadField = ({
         </div>
       )}
       <input
+        id="image-upload-field"
         type="file"
         accept="image/*"
         onChange={(e) => {

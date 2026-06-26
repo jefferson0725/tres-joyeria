@@ -3,8 +3,8 @@ import { createPortal } from "react-dom";
 import { X, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import { useMobileMenu } from "@/context/MobileMenuContext";
+import { useDataJson } from "@/hooks/useDataJson";
 
 interface CategoryData {
   id: number;
@@ -16,16 +16,11 @@ interface CategoryData {
 const GlobalMobileDrawer: React.FC = () => {
   const { isOpen, closeMenu } = useMobileMenu();
   const [isClosing, setIsClosing] = useState(false);
-  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [expandedParent, setExpandedParent] = useState<string | null>(null);
   const navigate = useNavigate();
 
-  useEffect(() => {
-    axios.get("/data.json").then((res) => {
-      const tree = Array.isArray(res.data.categories) ? res.data.categories : [];
-      setCategories(tree);
-    }).catch(() => {});
-  }, []);
+  const { data } = useDataJson();
+  const categories: CategoryData[] = Array.isArray(data?.categories) ? data.categories : [];
 
   useEffect(() => {
     if (!isOpen) setExpandedParent(null);
@@ -93,10 +88,11 @@ const GlobalMobileDrawer: React.FC = () => {
           >
             {/* Header — logo clickable */}
             <div className="relative flex items-center justify-center px-6 pt-10 pb-8">
-              <button onClick={handleLogoClick} className="focus:outline-none">
+              <button type="button" onClick={handleLogoClick} className="focus:outline-none">
                 <img src="/logo-horizontal.png" alt="TRES Joyería" className="h-12 w-auto object-contain" />
               </button>
               <button
+                type="button"
                 onClick={() => handleClose()}
                 className="absolute right-4 top-1/2 -translate-y-1/2 p-2 text-white/40 hover:text-white transition-colors"
                 aria-label="Cerrar menú"
@@ -114,6 +110,7 @@ const GlobalMobileDrawer: React.FC = () => {
               <div className="space-y-0">
                 {/* Todos */}
                 <button
+                  type="button"
                   onClick={handleAllClick}
                   className="w-full text-left py-4 text-[15px] font-display border-b border-white/10 text-white/85 hover:text-white transition-colors flex items-center justify-between group"
                 >
@@ -128,6 +125,7 @@ const GlobalMobileDrawer: React.FC = () => {
                   return (
                     <div key={category.id}>
                       <button
+                        type="button"
                         onClick={() => handleCategoryClick(category)}
                         className={`w-full text-left py-4 text-[15px] font-display transition-all duration-200 flex items-center justify-between group ${
                           !isLast || isExpanded ? "border-b border-white/10" : ""
@@ -157,6 +155,7 @@ const GlobalMobileDrawer: React.FC = () => {
                           >
                             <div className="pb-3 space-y-0.5">
                               <button
+                                type="button"
                                 onClick={() => handleSubcategoryClick(category.name, null)}
                                 className="w-full text-left pl-4 py-2.5 text-xs tracking-wider text-white/60 hover:text-white transition-colors"
                               >
@@ -164,6 +163,7 @@ const GlobalMobileDrawer: React.FC = () => {
                               </button>
                               {category.subcategories.map((sub) => (
                                 <button
+                                  type="button"
                                   key={sub.id}
                                   onClick={() => handleSubcategoryClick(category.name, sub.name)}
                                   className="w-full text-left pl-4 py-2.5 text-xs tracking-wider text-white/60 hover:text-white transition-colors"

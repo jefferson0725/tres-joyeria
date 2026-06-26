@@ -1,36 +1,15 @@
-import { MessageCircle, Heart } from "lucide-react";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useState } from "react";
 import { useWishlist } from "../hooks/useWishlist";
+import { useSettings } from "@/context/SettingsContext";
 import WishlistDrawer from "./WishlistDrawer";
 
 const WhatsAppButton = () => {
-  const [whatsappNumber, setWhatsappNumber] = useState<string | null>(null);
+  const { settings } = useSettings();
   const { wishlist } = useWishlist();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  useEffect(() => {
-    // Load WhatsApp number from data.json
-    const loadWhatsApp = async () => {
-      try {
-        const res = await axios.get("/api/export");
-        const data = res.data;
-        const number = data.settings?.whatsapp_number || "573007571199"; // Número por defecto
-        setWhatsappNumber(number);
-      } catch (err) {
-        console.error("Error loading WhatsApp number:", err);
-        // Set default number if loading fails
-        setWhatsappNumber("573007571199");
-      }
-    };
-    loadWhatsApp();
-  }, []);
-
-  if (!whatsappNumber) return null;
-
   const handleClick = () => {
-    // Format: remove spaces, dashes, parentheses
-    const cleanNumber = whatsappNumber.replace(/[\s\-\(\)]/g, "");
+    const cleanNumber = settings.whatsapp_number.replace(/[\s\-\(\)]/g, "");
 
     let message = "Hola, me interesan estos productos:";
 
@@ -60,6 +39,7 @@ const WhatsAppButton = () => {
 
       <div className="relative">
         <button
+          type="button"
           onClick={handleClick}
           className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 rounded-full bg-foreground text-white shadow-lg transition-all hover:scale-105 hover:shadow-xl hover:bg-foreground/80 active:scale-95"
           aria-label="Contactar por WhatsApp"

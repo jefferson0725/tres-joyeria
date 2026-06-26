@@ -21,6 +21,7 @@ const Chip = ({
   onToggle: () => void;
 }) => (
   <button
+    type="button"
     onClick={onToggle}
     className={`inline-flex items-center gap-1.5 px-3 py-1 text-[11px] uppercase tracking-[0.12em] font-medium border rounded-full transition-all ${
       active
@@ -54,6 +55,7 @@ const AttributeFilters = ({
       <div className="mx-auto max-w-7xl px-4">
         <div className="flex items-center gap-4 py-3">
           <button
+            type="button"
             onClick={() => setOpen((v) => !v)}
             className={`flex items-center gap-2 text-[11px] uppercase tracking-[0.14em] font-medium transition-colors ${
               hasActive ? "text-accent" : "text-muted-foreground hover:text-foreground"
@@ -79,6 +81,7 @@ const AttributeFilters = ({
                 <Chip key={m} label={m} active onToggle={() => onToggleMaterial(m)} />
               ))}
               <button
+                type="button"
                 onClick={onClear}
                 className="whitespace-nowrap text-[10px] text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors ml-1"
               >
@@ -125,6 +128,7 @@ const AttributeFilters = ({
 
             {hasActive && (
               <button
+                type="button"
                 onClick={() => { onClear(); setOpen(false); }}
                 className="text-[10px] uppercase tracking-[0.14em] text-muted-foreground hover:text-foreground transition-colors underline underline-offset-2"
               >

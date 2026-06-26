@@ -1,5 +1,11 @@
 import { create } from 'zustand';
 
+const WISHLIST_KEY = 'wishlist';
+const WISHLIST_VERSION = 1;
+
+const saveWishlist = (items: WishlistItem[]) =>
+  localStorage.setItem(WISHLIST_KEY, JSON.stringify({ v: WISHLIST_VERSION, data: items }));
+
 interface WishlistItem {
   id: number;
   image: string;
@@ -32,16 +38,13 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
   // Cargar desde localStorage
   loadFromStorage: () => {
     try {
-      const saved = localStorage.getItem('wishlist');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Migrar items antiguos sin quantity
-        const migrated = parsed.map((item: any) => ({
-          ...item,
-          quantity: item.quantity || 1
-        }));
-        set({ wishlist: migrated });
-      }
+      const saved = localStorage.getItem(WISHLIST_KEY);
+      if (!saved) return;
+      const parsed = JSON.parse(saved);
+      // Migrate: old format was a plain array; new format is { v, data }
+      const rawItems: any[] = Array.isArray(parsed) ? parsed : (parsed?.v === WISHLIST_VERSION ? parsed.data : []);
+      const migrated = rawItems.map((item: any) => ({ ...item, quantity: item.quantity || 1 }));
+      set({ wishlist: migrated });
     } catch (err) {
       console.error('Error loading wishlist:', err);
     }
@@ -54,7 +57,7 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
       if (exists) return state;
       
       const newWishlist = [...state.wishlist, { ...product, quantity: 1 }];
-      localStorage.setItem('wishlist', JSON.stringify(newWishlist));
+      saveWishlist(newWishlist);
       return { wishlist: newWishlist };
     });
   },
@@ -63,7 +66,7 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
   removeFromWishlist: (uniqueKey: string) => {
     set((state) => {
       const newWishlist = state.wishlist.filter((p) => p.uniqueKey !== uniqueKey);
-      localStorage.setItem('wishlist', JSON.stringify(newWishlist));
+      saveWishlist(newWishlist);
       return { wishlist: newWishlist };
     });
   },
@@ -74,7 +77,7 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
       const newWishlist = state.wishlist.map((p) =>
         p.uniqueKey === uniqueKey ? { ...p, quantity: Math.max(0, quantity) } : p
       );
-      localStorage.setItem('wishlist', JSON.stringify(newWishlist));
+      saveWishlist(newWishlist);
       return { wishlist: newWishlist };
     });
   },
@@ -86,7 +89,7 @@ export const useWishlistStore = create<WishlistState>((set, get) => ({
 
   // Limpiar wishlist
   clearWishlist: () => {
-    localStorage.setItem('wishlist', JSON.stringify([]));
+    saveWishlist([]);
     set({ wishlist: [] });
   },
 }));

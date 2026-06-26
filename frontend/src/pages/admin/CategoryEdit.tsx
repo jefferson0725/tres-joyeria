@@ -118,7 +118,7 @@ const CategoryEdit: React.FC = () => {
         ) : (
           <div className="space-y-2">
             {/* Parent categories */}
-            {categories.filter((c) => !c.parentId).map((parent, index) => {
+            {categories.reduce<typeof categories>((acc, c) => (c.parentId ? acc : [...acc, c]), []).map((parent, index) => {
               const children = categories.filter((c) => c.parentId === parent.id);
               return (
                 <div key={parent.id}>
@@ -172,8 +172,9 @@ const CategoryEdit: React.FC = () => {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 py-4">
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Nombre *</label>
+                <label htmlFor="edit-cat-name" className="text-sm font-semibold text-gray-700">Nombre *</label>
                 <Input
+                  id="edit-cat-name"
                   {...register("name", { required: true })}
                   placeholder="Nombre de la categoría"
                   className="h-12 border-2"
@@ -183,13 +184,14 @@ const CategoryEdit: React.FC = () => {
               {/* Parent select — only show if editing has no children */}
               {editing && categories.filter((c) => c.parentId === editing.id).length === 0 && (
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-gray-700">Categoría Padre</label>
+                  <label htmlFor="edit-cat-parent" className="text-sm font-semibold text-gray-700">Categoría Padre</label>
                   <select
+                    id="edit-cat-parent"
                     {...register("parentId")}
                     className="w-full h-10 px-3 text-sm border-2 border-gray-200 rounded-md bg-white text-gray-800 focus:outline-none focus:border-gray-800"
                   >
                     <option value="">— Sin categoría padre (principal)</option>
-                    {categories.filter((c) => !c.parentId && c.id !== editing?.id).map((c) => (
+                    {categories.reduce<typeof categories>((acc, c) => (!c.parentId && c.id !== editing?.id ? [...acc, c] : acc), []).map((c) => (
                       <option key={c.id} value={String(c.id)}>{c.name}</option>
                     ))}
                   </select>
@@ -197,8 +199,9 @@ const CategoryEdit: React.FC = () => {
               )}
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold text-gray-700">Descripción</label>
+                <label htmlFor="edit-cat-desc" className="text-sm font-semibold text-gray-700">Descripción</label>
                 <Textarea
+                  id="edit-cat-desc"
                   {...register("description")}
                   placeholder="Descripción de la categoría"
                   rows={3}

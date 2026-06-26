@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
-import axios from "axios";
-import { ChevronLeft, ChevronRight, Heart, Sparkles, ArrowLeft } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShoppingCart, Sparkles, ArrowLeft } from "lucide-react";
+import { useDataJson } from "@/hooks/useDataJson";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatPrice } from "@/utils/formatPrice";
@@ -11,6 +11,7 @@ import { useWishlist } from "@/hooks/useWishlist";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import WhatsAppButton from "@/components/WhatsAppButton";
+import WishlistDrawer from "@/components/WishlistDrawer";
 
 const SITE_URL = "https://tresjoyeria.com";
 
@@ -26,37 +27,34 @@ const ProductPage = () => {
   const { settings } = useSettings();
   const { isInWishlist, addToWishlist, removeFromWishlist } = useWishlist();
 
-  const [product, setProduct] = useState<any | null>(null);
-  const [notFound, setNotFound] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
-  const [modalPrice, setModalPrice] = useState<number>(0);
   const [navSearch, setNavSearch] = useState("");
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const [zoom, setZoom] = useState(false);
+  const [origin, setOrigin] = useState("50% 50%");
 
+  const { data: jsonData, isLoading } = useDataJson();
+  const product = (jsonData?.products ?? []).find((p: any) => p.slug === slug) ?? null;
+  const [modalPrice, setModalPrice] = useState<number>(0);
+
+  const _productId = product?.id;
+  const _productPrice = product?.price;
   useEffect(() => {
-    axios.get(`/data.json?_v=${Date.now()}`, { headers: { 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' } }).then((res) => {
-      const products: any[] = res.data.products || [];
-      const found = products.find((p) => p.slug === slug);
-      if (found) {
-        setProduct(found);
-        setModalPrice(parseFloat(found.price));
-      } else {
-        setNotFound(true);
-      }
-    }).catch(() => setNotFound(true));
-  }, [slug]);
+    if (_productId != null && _productPrice != null) setModalPrice(parseFloat(_productPrice));
+  }, [_productId, _productPrice]);
 
-  if (notFound) {
+  if (isLoading) {
+    return <div className="min-h-screen bg-background animate-pulse" />;
+  }
+
+  if (!product) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4">
         <p className="text-muted-foreground">Producto no encontrado</p>
         <Link to="/" className="text-sm underline">Volver al catálogo</Link>
       </div>
     );
-  }
-
-  if (!product) {
-    return <div className="min-h-screen bg-background animate-pulse" />;
   }
 
   const gallery: string[] = [];
@@ -138,7 +136,7 @@ const ProductPage = () => {
         <meta property="og:url" content={`${SITE_URL}/producto/${slug}`} />
         <meta property="og:type" content="product" />
         <meta name="twitter:card" content="summary_large_image" />
-        <script type="application/ld+json">{JSON.stringify(jsonLd)}</script>
+        <script type="application/ld+json">{JSON.stringify(jsonLd).replace(/</g, "\\u003c").replace(/>/g, "\\u003e")}</script>
       </Helmet>
 
       <Navbar
@@ -148,7 +146,8 @@ const ProductPage = () => {
         searchQuery={navSearch}
         onSearchChange={setNavSearch}
         onSearchSubmit={(q) => navigate(`/?search=${encodeURIComponent(q)}`)}
-        onWishlistClick={() => {}}
+        onWishlistClick={() => setIsWishlistOpen(true)}
+        products={jsonData?.products ?? []}
       />
 
       <main className="mx-auto max-w-5xl px-4 pt-32 pb-20">
@@ -170,15 +169,27 @@ const ProductPage = () => {
         <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
           {/* Gallery */}
           <div>
-            <div className="aspect-square overflow-hidden bg-muted rounded-sm relative group">
+            <div
+              className="aspect-square overflow-hidden bg-muted rounded-sm relative group"
+              onMouseEnter={() => setZoom(true)}
+              onMouseLeave={() => setZoom(false)}
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+                const y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100));
+                setOrigin(`${x}% ${y}%`);
+              }}
+            >
               <img
                 src={activeImage}
                 alt={product.name}
-                className="w-full h-full object-cover transition-all duration-500"
+                className="w-full h-full object-cover transition-transform duration-200 cursor-zoom-in"
+                style={{ transformOrigin: origin, transform: zoom ? "scale(2)" : "scale(1)" }}
               />
               {gallery.length > 1 && !selectedSize && (
                 <>
                   <button
+                    type="button"
                     onClick={() => setGalleryIndex((i) => (i - 1 + gallery.length) % gallery.length)}
                     className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                     aria-label="Imagen anterior"
@@ -186,6 +197,7 @@ const ProductPage = () => {
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
+                    type="button"
                     onClick={() => setGalleryIndex((i) => (i + 1) % gallery.length)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                     aria-label="Imagen siguiente"
@@ -199,8 +211,10 @@ const ProductPage = () => {
               <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                 {gallery.map((src, idx) => (
                   <button
-                    key={idx}
+                    type="button"
+                    key={src}
                     onClick={() => setGalleryIndex(idx)}
+                    aria-label={`Ver imagen ${idx + 1}`}
                     className={`h-16 w-16 flex-shrink-0 overflow-hidden rounded-sm border-2 transition ${
                       idx === galleryIndex ? "border-accent" : "border-transparent opacity-60 hover:opacity-100"
                     }`}
@@ -255,7 +269,7 @@ const ProductPage = () => {
                 <p className="text-[10px] uppercase tracking-wide text-muted-foreground mb-2">Piedras</p>
                 <ul className="space-y-1 text-sm">
                   {product.gemstones.map((g: any, idx: number) => (
-                    <li key={idx} className="flex items-center gap-2">
+                    <li key={g.id ?? `${g.type}-${idx}`} className="flex items-center gap-2">
                       <Sparkles className="h-3 w-3 text-accent" />
                       <span>
                         {g.type}{g.count ? ` × ${g.count}` : ""}{g.carat ? ` · ${g.carat} ct` : ""}
@@ -312,7 +326,7 @@ const ProductPage = () => {
                 variant="outline"
                 className={`flex-1 h-11 border-2 ${inWishlist ? "border-destructive text-destructive" : "border-foreground text-foreground"}`}
               >
-                <Heart className={`h-4 w-4 mr-2 ${inWishlist ? "fill-current" : ""}`} />
+                <ShoppingCart className="h-4 w-4 mr-2" />
                 {inWishlist ? "En favoritos" : "Añadir a favoritos"}
               </Button>
             </div>
@@ -330,6 +344,7 @@ const ProductPage = () => {
 
       <Footer />
       <WhatsAppButton />
+      <WishlistDrawer isOpen={isWishlistOpen} onClose={() => setIsWishlistOpen(false)} />
     </div>
   );
 };

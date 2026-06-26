@@ -1,6 +1,19 @@
 import React, { createContext, useState, useEffect, useMemo, useCallback } from "react";
 import axios from "axios";
-import { setTokens } from "../utils/tokenStore";
+import { setTokens, getRefreshToken } from "../utils/tokenStore";
+
+const USER_KEY = "user";
+const USER_VERSION = 1;
+const saveUser = (u: any) =>
+  localStorage.setItem(USER_KEY, JSON.stringify({ v: USER_VERSION, data: u }));
+const loadUser = (): any | null => {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return parsed?.v === USER_VERSION ? parsed.data : (parsed?.id ? parsed : null);
+  } catch { return null; }
+};
 import { setLogoutCallback } from "../utils/api";
 
 const API_ROOT = import.meta.env.VITE_API_URL ?? "";
@@ -19,10 +32,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
   const [refreshToken, setRefreshToken] = useState<string | null>(() => localStorage.getItem("refreshToken"));
-  const [user, setUser] = useState<any | null>(() => {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  });
+  const [user, setUser] = useState<any | null>(loadUser);
 
   // Configurar el callback de logout automático cuando expira el token
   useEffect(() => {
@@ -44,13 +54,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(u);
     localStorage.setItem("token", t);
     localStorage.setItem("refreshToken", rt);
-    localStorage.setItem("user", JSON.stringify(u));
+    saveUser(u);
     setTokens(t, rt);
   }, []);
 
   const logout = useCallback(() => {
     // call backend to revoke refresh token
-    const rt = localStorage.getItem("refreshToken");
+    const rt = getRefreshToken();
     if (rt) {
       axios.post(`${API_ROOT}/api/users/logout`, {
         refreshToken: rt,
@@ -68,7 +78,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const refresh = useCallback(async () => {
-    const rt = localStorage.getItem("refreshToken");
+    const rt = getRefreshToken();
     if (!rt) throw new Error("No refresh token");
 
     const res = await axios.post(`${API_ROOT}/api/users/refresh-token`, {

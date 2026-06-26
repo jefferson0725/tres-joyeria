@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { X, Save, AlertCircle, Trash2, Image as ImageIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -50,14 +50,14 @@ const ProductEdit: React.FC = () => {
   const [categoryId, setCategoryId] = useState<string>("");
   const [categories, setCategories] = useState<any[]>([]);
 
-  const [imageFile, setImageFile] = useState<File | null>(null);
+  const imageFileRef = useRef<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [imageRemoved, setImageRemoved] = useState(false); // Track if user removed existing image
+  const imageRemovedRef = useRef(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   
   // Cache buster to force image refresh after upload
-  const [imageCacheBuster, setImageCacheBuster] = useState(Date.now());
+  const [imageCacheBuster, setImageCacheBuster] = useState(() => Date.now());
 
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<any | null>(null);
@@ -77,7 +77,7 @@ const ProductEdit: React.FC = () => {
   const [gemstones, setGemstones] = useState<GemstoneInput[]>([]);
   const [galleryImages, setGalleryImages] = useState<{id: number; url: string; preview: string}[]>([]);
   const [newGalleryFiles, setNewGalleryFiles] = useState<{file: File; preview: string}[]>([]);
-  const [deletedGalleryIds, setDeletedGalleryIds] = useState<number[]>([]);
+  const deletedGalleryIdsRef = useRef<number[]>([]);
 
   useEffect(() => { load(); loadCategories(); }, []);
 
@@ -124,8 +124,8 @@ const ProductEdit: React.FC = () => {
     setPrice(p.price ?? "");
     setCategoryId(p.categoryId ? String(p.categoryId) : "0");
     setImagePreview(p.image ? `/images/${p.image}` : null);
-    setImageFile(null);
-    setImageRemoved(false);
+    imageFileRef.current = null;
+    imageRemovedRef.current = false;
     setUploadProgress(0);
     setSku(p.sku || "");
     setMaterial(p.material || "");
@@ -145,7 +145,7 @@ const ProductEdit: React.FC = () => {
     })));
     setGalleryImages([]);
     setNewGalleryFiles([]);
-    setDeletedGalleryIds([]);
+    deletedGalleryIdsRef.current = [];
     loadGallery(p.id);
     // Load sizes for this product
     if (p.sizes && p.sizes.length > 0) {
@@ -167,9 +167,9 @@ const ProductEdit: React.FC = () => {
     setDescription("");
     setPrice("");
     setCategoryId("");
-    setImageFile(null);
+    imageFileRef.current = null;
     setImagePreview(null);
-    setImageRemoved(false);
+    imageRemovedRef.current = false;
     setEditingSizes([]);
     setSku("");
     setMaterial("");
@@ -180,7 +180,7 @@ const ProductEdit: React.FC = () => {
     setGemstones([]);
     setGalleryImages([]);
     setNewGalleryFiles([]);
-    setDeletedGalleryIds([]);
+    deletedGalleryIdsRef.current = [];
   };
 
   const saveSizes = (productId: number) =>
@@ -232,12 +232,12 @@ const ProductEdit: React.FC = () => {
           displayOrder: idx
         }));
 
-        for (const update of updates) {
-          await apiFetch(`/api/products/${update.id}`, {
+        await Promise.all(updates.map((update) =>
+          apiFetch(`/api/products/${update.id}`, {
             method: "PUT",
             body: JSON.stringify({ displayOrder: update.displayOrder }),
-          });
-        }
+          })
+        ));
 
         toast({ title: "Orden actualizado", description: "El orden de los productos ha sido guardado" });
       } catch (err: any) {
@@ -278,12 +278,12 @@ const ProductEdit: React.FC = () => {
         : null;
 
       // If new image selected, upload first
-      if (imageFile) {
+      if (imageFileRef.current) {
         setUploadingImage(true);
         setUploadProgress(0);
         const t = toast({ title: "Guardando imagen", description: "0%" });
 
-        const ext = imageFile.name.split(".").pop() || "jpg";
+        const ext = imageFileRef.current.name.split(".").pop() || "jpg";
         const sanitizedName = name.toLowerCase()
           .replace(/[^a-z0-9]+/g, "-")
           .replace(/^-+|-+$/g, "")
@@ -291,7 +291,7 @@ const ProductEdit: React.FC = () => {
         const filename = `${editing.id}-${sanitizedName}.${ext}`;
 
         try {
-          const savedFilename = await imageUpload.upload(imageFile, filename, {
+          const savedFilename = await imageUpload.upload(imageFileRef.current, filename, {
             onProgress: (pct) => {
               setUploadProgress(pct);
               t.update({ id: t.id, description: `${pct}%` });
@@ -308,8 +308,7 @@ const ProductEdit: React.FC = () => {
           t.update({ id: t.id, title: "Error al guardar imagen", description: message });
           throw new Error(message);
         }
-      } else if (imageRemoved) {
-        // User removed the image without adding a new one
+      } else if (imageRemovedRef.current) {
         payload.image = null;
       }
 
@@ -319,30 +318,29 @@ const ProductEdit: React.FC = () => {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Error updating product");
-      
+
       // Always save sizes to handle deletions
       await saveSizes(editing.id);
 
-      // Delete removed gallery images
-      for (const imgId of deletedGalleryIds) {
-        await apiFetch(`/api/product-images/${imgId}`, { method: "DELETE" });
-      }
+      // Delete removed gallery images in parallel
+      await Promise.all(
+        deletedGalleryIdsRef.current.map((imgId) =>
+          apiFetch(`/api/product-images/${imgId}`, { method: "DELETE" })
+        )
+      );
 
       // Upload new gallery images
-      for (let i = 0; i < newGalleryFiles.length; i++) {
-        const { file } = newGalleryFiles[i];
-        const ext = file.name.split(".").pop() || "jpg";
-        const filename = `${editing.id}-gallery-${Date.now()}-${i}.${ext}`;
-        const savedFilename = await imageUpload.upload(file, filename);
-        await apiFetch(`/api/product-images/product/${editing.id}`, {
-          method: "POST",
-          body: JSON.stringify({
-            url: savedFilename,
-            displayOrder: galleryImages.length + i,
-            isPrimary: false,
-          }),
-        });
-      }
+      const ts = Date.now();
+      await Promise.all(
+        newGalleryFiles.map(async ({ file }, i) => {
+          const ext = file.name.split(".").pop() || "jpg";
+          const savedFilename = await imageUpload.upload(file, `${editing.id}-gallery-${ts}-${i}.${ext}`);
+          await apiFetch(`/api/product-images/product/${editing.id}`, {
+            method: "POST",
+            body: JSON.stringify({ url: savedFilename, displayOrder: galleryImages.length + i, isPrimary: false }),
+          });
+        })
+      );
 
       toast({ title: "Producto actualizado", description: data.name });
       
@@ -426,14 +424,14 @@ const ProductEdit: React.FC = () => {
               uploadingImage={uploadingImage}
               uploadProgress={uploadProgress}
               onSelectImage={(f) => {
-                setImageFile(f);
+                imageFileRef.current = f;
                 setImagePreview(URL.createObjectURL(f));
-                setImageRemoved(false);
+                imageRemovedRef.current = false;
               }}
               onRemoveImage={() => {
-                setImageFile(null);
+                imageFileRef.current = null;
                 setImagePreview(null);
-                setImageRemoved(true);
+                imageRemovedRef.current = true;
               }}
               galleryExisting={galleryImages.map((g) => ({ id: g.id, preview: g.preview }))}
               galleryNew={newGalleryFiles}
@@ -444,7 +442,7 @@ const ProductEdit: React.FC = () => {
                 ])
               }
               onRemoveGalleryExisting={(id) => {
-                setDeletedGalleryIds([...deletedGalleryIds, id]);
+                deletedGalleryIdsRef.current = [...deletedGalleryIdsRef.current, id];
                 setGalleryImages(galleryImages.filter((i) => i.id !== id));
               }}
               onRemoveGalleryNew={(idx) => setNewGalleryFiles(newGalleryFiles.filter((_, i) => i !== idx))}

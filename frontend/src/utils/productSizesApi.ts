@@ -20,14 +20,14 @@ export async function syncProductSizes(opts: {
   upload: UploadFn;
 }): Promise<void> {
   const { productId, current, original = [], upload } = opts;
-  const currentIds = new Set(current.filter((s) => s.id).map((s) => s.id));
+  const currentIds = new Set(current.flatMap((s) => s.id ? [s.id] : []));
 
-  // Borrar las que ya no están
-  for (const existing of original) {
-    if (existing.id && !currentIds.has(existing.id)) {
-      await apiFetch(`/api/product-sizes/${existing.id}`, { method: "DELETE" });
-    }
-  }
+  // Borrar las que ya no están — en paralelo
+  await Promise.all(
+    original
+      .filter((s) => s.id && !currentIds.has(s.id))
+      .map((s) => apiFetch(`/api/product-sizes/${s.id}`, { method: "DELETE" }))
+  );
 
   // Crear o actualizar el resto
   for (let i = 0; i < current.length; i++) {
@@ -62,7 +62,7 @@ export async function syncProductSizes(opts: {
 }
 
 /** Crea las tallas para un producto nuevo (sin existentes). */
-export const createProductSizes = (
+const createProductSizes = (
   productId: number,
   sizes: SizeInput[],
   upload: UploadFn,

@@ -77,8 +77,9 @@ const CategoryCreate: React.FC = () => {
           )}
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Nombre de la Categoría *</label>
+            <label htmlFor="cat-name" className="text-sm font-semibold text-gray-700">Nombre de la Categoría *</label>
             <Input
+              id="cat-name"
               type="text"
               placeholder="Ej: Anillos de Oro, Piedras Naturales..."
               {...register("name", { required: true })}
@@ -87,8 +88,9 @@ const CategoryCreate: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Categoría Padre (Opcional)</label>
+            <label htmlFor="cat-parent" className="text-sm font-semibold text-gray-700">Categoría Padre (Opcional)</label>
             <select
+              id="cat-parent"
               {...register("parentId")}
               className="w-full h-12 px-3 text-sm border-2 border-gray-200 rounded-md bg-white text-gray-800 focus:outline-none focus:border-gray-800"
             >
@@ -101,8 +103,9 @@ const CategoryCreate: React.FC = () => {
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-gray-700">Descripción (Opcional)</label>
+            <label htmlFor="cat-desc" className="text-sm font-semibold text-gray-700">Descripción (Opcional)</label>
             <Textarea
+              id="cat-desc"
               placeholder="Describe brevemente esta categoría..."
               {...register("description")}
               rows={3}

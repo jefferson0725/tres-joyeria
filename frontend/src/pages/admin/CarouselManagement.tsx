@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Upload, Trash2, Image as ImageIcon, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -16,13 +16,19 @@ interface CarouselImage {
   mobileUrl?: string;
 }
 
+const validateImageFile = (file: File): string | null => {
+  if (!file.type.startsWith("image/")) return "Por favor selecciona una imagen válida";
+  if (file.size > 5 * 1024 * 1024) return "La imagen no debe superar 5MB";
+  return null;
+};
+
 const CarouselManagement: React.FC = () => {
   const [images, setImages] = useState<CarouselImage[]>([]);
   const [showCarousel, setShowCarousel] = useState(false);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
   const [desktopFile, setDesktopFile] = useState<File | null>(null);
-  const [mobileFile, setMobileFile] = useState<File | null>(null);
+  const mobileFileRef = useRef<File | null>(null);
   const [desktopPreview, setDesktopPreview] = useState<string | null>(null);
   const [mobilePreview, setMobilePreview] = useState<string | null>(null);
 
@@ -62,11 +68,6 @@ const CarouselManagement: React.FC = () => {
     }
   };
 
-  const validateImageFile = (file: File): string | null => {
-    if (!file.type.startsWith("image/")) return "Por favor selecciona una imagen válida";
-    if (file.size > 5 * 1024 * 1024) return "La imagen no debe superar 5MB";
-    return null;
-  };
 
   const handleDesktopSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -83,7 +84,7 @@ const CarouselManagement: React.FC = () => {
     if (!file) return;
     const err = validateImageFile(file);
     if (err) { toast({ title: "Error", description: err, variant: "destructive" }); return; }
-    setMobileFile(file);
+    mobileFileRef.current = file;
     setMobilePreview(URL.createObjectURL(file));
     e.target.value = "";
   };
@@ -97,7 +98,7 @@ const CarouselManagement: React.FC = () => {
       setUploading(true);
       const formData = new FormData();
       formData.append("image", desktopFile);
-      if (mobileFile) formData.append("mobileImage", mobileFile);
+      if (mobileFileRef.current) formData.append("mobileImage", mobileFileRef.current);
 
       const API_URL = import.meta.env.VITE_API_URL || "";
       const token = getToken();
@@ -107,7 +108,7 @@ const CarouselManagement: React.FC = () => {
 
       toast({ title: "Éxito", description: "Slide subido correctamente" });
       setDesktopFile(null);
-      setMobileFile(null);
+      mobileFileRef.current = null;
       setDesktopPreview(null);
       setMobilePreview(null);
       await loadCarouselData();

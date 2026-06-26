@@ -1,9 +1,26 @@
 import { create } from 'zustand';
 import axios from 'axios';
-import { setTokens } from '../utils/tokenStore';
+import { setTokens, getRefreshToken } from '../utils/tokenStore';
 import { setLogoutCallback } from '../utils/api';
 
 const API_ROOT = import.meta.env.VITE_API_URL ?? "";
+const USER_KEY = "user";
+const USER_VERSION = 1;
+
+const saveUser = (u: User) =>
+  localStorage.setItem(USER_KEY, JSON.stringify({ v: USER_VERSION, data: u }));
+
+const loadUser = (): User | null => {
+  try {
+    const raw = localStorage.getItem(USER_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    // Migrate: old format was a plain object; new format is { v, data }
+    return parsed?.v === USER_VERSION ? parsed.data : (parsed?.id ? parsed : null);
+  } catch {
+    return null;
+  }
+};
 
 interface User {
   id: number;
@@ -26,23 +43,20 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   // Estado inicial desde localStorage
   token: localStorage.getItem("token"),
   refreshToken: localStorage.getItem("refreshToken"),
-  user: (() => {
-    const raw = localStorage.getItem("user");
-    return raw ? JSON.parse(raw) : null;
-  })(),
+  user: loadUser(),
 
   // Login
   login: (t: string, rt: string, u: User) => {
     localStorage.setItem("token", t);
     localStorage.setItem("refreshToken", rt);
-    localStorage.setItem("user", JSON.stringify(u));
+    saveUser(u);
     setTokens(t, rt);
     set({ token: t, refreshToken: rt, user: u });
   },
 
   // Logout
   logout: () => {
-    const rt = localStorage.getItem("refreshToken");
+    const rt = getRefreshToken();
     if (rt) {
       axios.post(`${API_ROOT}/api/users/logout`, {
         refreshToken: rt,
@@ -59,7 +73,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   // Refresh token
   refresh: async () => {
-    const rt = localStorage.getItem("refreshToken");
+    const rt = getRefreshToken();
     if (!rt) throw new Error("No refresh token");
 
     const res = await axios.post(`${API_ROOT}/api/users/refresh-token`, {

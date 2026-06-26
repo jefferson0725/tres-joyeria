@@ -95,10 +95,11 @@ const PasswordSection = () => {
 
       <div className="bg-white p-6 rounded-xl border-2 border-gray-200 space-y-4">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label htmlFor="current-password" className="block text-sm font-semibold text-gray-700 mb-2">
             Contraseña Actual
           </label>
           <Input
+            id="current-password"
             type="password"
             placeholder="Ingresa tu contraseña actual"
             value={currentPassword}
@@ -107,10 +108,11 @@ const PasswordSection = () => {
           />
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label htmlFor="new-password" className="block text-sm font-semibold text-gray-700 mb-2">
             Nueva Contraseña
           </label>
           <Input
+            id="new-password"
             type="password"
             placeholder="Ingresa tu nueva contraseña"
             value={newPassword}
@@ -120,10 +122,11 @@ const PasswordSection = () => {
           <p className="text-sm text-gray-600 mt-1">Mínimo 6 caracteres</p>
         </div>
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">
+          <label htmlFor="confirm-password" className="block text-sm font-semibold text-gray-700 mb-2">
             Confirmar Nueva Contraseña
           </label>
           <Input
+            id="confirm-password"
             type="password"
             placeholder="Confirma tu nueva contraseña"
             value={confirmPassword}

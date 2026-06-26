@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 
 export interface SizeInput {
   id?: number;
+  _key?: number;
   size: string;
   price: number | "";
   image?: string | null;
@@ -28,7 +29,7 @@ const SizeEditor = ({ sizes, onChange, resolveImageUrl = defaultResolve }: SizeE
   const add = () =>
     onChange([
       ...sizes,
-      { size: "", price: "", image: null, imageFile: null, imagePreview: null },
+      { _key: Date.now(), size: "", price: "", image: null, imageFile: null, imagePreview: null },
     ]);
 
   const remove = (idx: number) => onChange(sizes.filter((_, i) => i !== idx));
@@ -41,7 +42,7 @@ const SizeEditor = ({ sizes, onChange, resolveImageUrl = defaultResolve }: SizeE
       {sizes.map((size, index) => {
         const preview = previewFor(size);
         return (
-          <div key={index} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
+          <div key={size.id ?? size._key ?? index} className="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-2">
             <div className="flex justify-between items-center mb-2">
               <h4 className="font-semibold text-sm text-gray-800">Tamaño {index + 1}</h4>
               <Button type="button" variant="destructive" size="sm" onClick={() => remove(index)}>
@@ -52,8 +53,9 @@ const SizeEditor = ({ sizes, onChange, resolveImageUrl = defaultResolve }: SizeE
 
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1 block">Tamaño *</label>
+                <label htmlFor={`size-name-${index}`} className="text-xs font-semibold text-gray-700 mb-1 block">Tamaño *</label>
                 <Input
+                  id={`size-name-${index}`}
                   type="text"
                   placeholder='Ej: "6", "40cm"'
                   value={size.size}
@@ -62,10 +64,11 @@ const SizeEditor = ({ sizes, onChange, resolveImageUrl = defaultResolve }: SizeE
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-gray-700 mb-1 block">Precio *</label>
+                <label htmlFor={`size-price-${index}`} className="text-xs font-semibold text-gray-700 mb-1 block">Precio *</label>
                 <div className="relative">
                   <span className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-500 text-sm">$</span>
                   <Input
+                    id={`size-price-${index}`}
                     type="number"
                     placeholder="0"
                     value={size.price === "" ? "" : size.price}
@@ -81,7 +84,7 @@ const SizeEditor = ({ sizes, onChange, resolveImageUrl = defaultResolve }: SizeE
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-gray-700 mb-1 block">
+              <label htmlFor={`size-img-${index}`} className="text-xs font-semibold text-gray-700 mb-1 block">
                 Imagen para esta variante
               </label>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 hover:border-accent transition-colors">
@@ -112,6 +115,8 @@ const SizeEditor = ({ sizes, onChange, resolveImageUrl = defaultResolve }: SizeE
                   <p className="text-xs text-gray-500 text-center mb-2">Selecciona una imagen</p>
                 )}
                 <input
+                  id={`size-img-${index}`}
+                  aria-label="Imagen para esta variante"
                   type="file"
                   accept="image/*"
                   onChange={(e) => {

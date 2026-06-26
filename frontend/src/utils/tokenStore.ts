@@ -17,8 +17,8 @@ export const setTokens = (t: string | null, rt: string | null) => {
   }
 };
 
-export const getToken = () => token || localStorage.getItem("token");
-export const getRefreshToken = () => refreshToken || localStorage.getItem("refreshToken");
+export const getToken = () => token;
+export const getRefreshToken = () => refreshToken;
 
 export const clearTokens = () => {
   token = null;

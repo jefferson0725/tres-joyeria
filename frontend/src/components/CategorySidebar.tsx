@@ -57,6 +57,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
           >
             {/* Close Button */}
             <button
+              type="button"
               onClick={handleClose}
               className="absolute top-3 right-3 p-2.5 rounded-full bg-white/30 hover:bg-white/40 text-white transition-all z-[100] shadow-xl border border-white/20"
               aria-label="Cerrar menú"
@@ -82,6 +83,7 @@ const CategorySidebar: React.FC<CategorySidebarProps> = ({
                 <div className="space-y-1">
                   {categories.map((category) => (
                     <button
+                      type="button"
                       key={category}
                       onClick={() => handleCategorySelect(category)}
                       className={`w-full text-left px-4 py-3 rounded-xl text-[13px] font-medium tracking-wide transition-all duration-200 ${
