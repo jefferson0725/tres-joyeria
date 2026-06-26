@@ -7,8 +7,8 @@ import AnimatedProductCard from "@/components/AnimatedProductCard";
 import AttributeFilters from "@/components/AttributeFilters";
 import CategoryFilter from "@/components/CategoryFilter";
 import WhatsAppButton from "@/components/WhatsAppButton";
-import SocialFloat from "@/components/SocialFloat";
 import WishlistDrawer from "@/components/WishlistDrawer";
+import ProductCardSkeleton from "@/components/ProductCardSkeleton";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
 import Carousel from "@/components/Carousel";
@@ -167,6 +167,10 @@ const Index = () => {
   const showFeatured =
     featuredProducts.length > 0 && activeCategory === "Todos" && !searchQuery;
 
+  // Show the full-height hero (carousel or its loading placeholder) until we know
+  // the carousel setting, so the layout never shifts from content-first to carousel.
+  const showHero = loadingData || settings.show_carousel;
+
   // Infinite scroll observer
   const loadMore = useCallback(() => {
     if (loadingMore || !hasMore) return;
@@ -231,11 +235,17 @@ const Index = () => {
         products={products}
       />
 
-      {/* Carousel — full viewport, no top padding (navbar overlays transparently) */}
-      {settings.show_carousel && <Carousel />}
+      {/* Carousel — full viewport, no top padding (navbar overlays transparently).
+          While settings load, reserve the hero space so the carousel is the first
+          thing the user sees instead of a content-then-carousel layout jump. */}
+      {loadingData ? (
+        <div className="w-full h-screen bg-gray-900 animate-pulse" />
+      ) : settings.show_carousel ? (
+        <Carousel />
+      ) : null}
 
       {/* Attribute filters — sticky below navbar */}
-      <div className={settings.show_carousel ? "" : "mt-[var(--navbar-h,5rem)]"}>
+      <div className={showHero ? "" : "mt-[var(--navbar-h,5rem)]"}>
         <AttributeFilters
           availableGemstones={availableGemstones}
           availableMaterials={availableMaterials}
@@ -249,7 +259,7 @@ const Index = () => {
 
       {/* Main Content */}
       <main
-        className={`flex-1 mx-auto w-full max-w-7xl px-4 py-12 ${settings.show_carousel ? "pt-16" : "pt-32 md:pt-48"}`}
+        className={`flex-1 mx-auto w-full max-w-7xl px-4 py-12 ${showHero ? "pt-16" : "pt-32 md:pt-48"}`}
       >
         {showFeatured && (
           <section className="mb-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -283,8 +293,10 @@ const Index = () => {
             </p>
           </div>
           {loadingProducts ? (
-            <div className="flex justify-center items-center py-20">
-              <Loader2 className="h-10 w-10 animate-spin text-muted-foreground" />
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 sm:gap-6">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <ProductCardSkeleton key={i} />
+              ))}
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="py-20 text-center">
@@ -340,9 +352,6 @@ const Index = () => {
 
       {/* WhatsApp Button */}
       <WhatsAppButton />
-
-      {/* Social Float */}
-      <SocialFloat />
 
       {/* Wishlist Drawer */}
       <WishlistDrawer

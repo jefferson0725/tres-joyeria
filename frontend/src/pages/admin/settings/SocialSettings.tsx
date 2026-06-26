@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
 import useSetting from "@/hooks/useSetting";
 import apiFetch from "../../../utils/api";
 import { toast } from "@/hooks/use-toast";
@@ -11,7 +10,6 @@ import { toast } from "@/hooks/use-toast";
 const SOCIAL_OPTS = { autoExport: false };
 
 const SocialSettings = () => {
-  const widget = useSetting<boolean>("show_social_widget", false, SOCIAL_OPTS);
   const label = useSetting<string>("social_label", "SÍGUENOS", SOCIAL_OPTS);
   const facebook = useSetting<string>("social_facebook", "", SOCIAL_OPTS);
   const instagram = useSetting<string>("social_instagram", "", SOCIAL_OPTS);
@@ -24,7 +22,6 @@ const SocialSettings = () => {
     setSaving(true);
     try {
       await Promise.all([
-        widget.save(),
         label.save(),
         facebook.save(),
         instagram.save(),
@@ -61,19 +58,11 @@ const SocialSettings = () => {
     >
       <div>
         <h2 className="text-2xl font-bold text-gray-800 mb-1">Redes Sociales</h2>
-        <p className="text-gray-500 text-sm">Configura el widget flotante de redes sociales</p>
-      </div>
-
-      <div className="flex items-center justify-between p-4 bg-white rounded-lg border border-gray-200">
-        <div>
-          <p className="font-semibold text-gray-800">Mostrar widget</p>
-          <p className="text-sm text-gray-500">Activa el botón flotante de redes en el catálogo</p>
-        </div>
-        <Switch checked={widget.value} onCheckedChange={widget.setValue} />
+        <p className="text-gray-500 text-sm">Configura las redes sociales que aparecen en el footer</p>
       </div>
 
       <div className="p-4 bg-white rounded-lg border border-gray-200 space-y-2">
-        <label htmlFor="social-label" className="text-sm font-semibold text-gray-700">Texto del widget</label>
+        <label htmlFor="social-label" className="text-sm font-semibold text-gray-700">Texto de redes</label>
         <Input
           id="social-label"
           value={label.value}
@@ -81,7 +70,7 @@ const SocialSettings = () => {
           placeholder="SÍGUENOS"
           className="max-w-xs"
         />
-        <p className="text-xs text-gray-400">Texto vertical que aparece debajo de los iconos</p>
+        <p className="text-xs text-gray-400">Texto que aparece sobre los iconos en el footer</p>
       </div>
 
       <div className="p-4 bg-white rounded-lg border border-gray-200 space-y-4">

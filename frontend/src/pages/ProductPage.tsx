@@ -10,6 +10,7 @@ import { useSettings } from "@/context/SettingsContext";
 import { useWishlist } from "@/hooks/useWishlist";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ProductImageZoom from "@/components/ProductImageZoom";
 import WhatsAppButton from "@/components/WhatsAppButton";
 import WishlistDrawer from "@/components/WishlistDrawer";
 
@@ -31,8 +32,6 @@ const ProductPage = () => {
   const [selectedSizeId, setSelectedSizeId] = useState<string | null>(null);
   const [navSearch, setNavSearch] = useState("");
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
-  const [zoom, setZoom] = useState(false);
-  const [origin, setOrigin] = useState("50% 50%");
 
   const { data: jsonData, isLoading } = useDataJson();
   const product = (jsonData?.products ?? []).find((p: any) => p.slug === slug) ?? null;
@@ -43,6 +42,10 @@ const ProductPage = () => {
   useEffect(() => {
     if (_productId != null && _productPrice != null) setModalPrice(parseFloat(_productPrice));
   }, [_productId, _productPrice]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0 });
+  }, [slug]);
 
   if (isLoading) {
     return <div className="min-h-screen bg-background animate-pulse" />;
@@ -169,44 +172,28 @@ const ProductPage = () => {
         <div className="grid md:grid-cols-2 gap-10 lg:gap-16">
           {/* Gallery */}
           <div>
-            <div
-              className="aspect-square overflow-hidden bg-muted rounded-sm relative group"
-              onMouseEnter={() => setZoom(true)}
-              onMouseLeave={() => setZoom(false)}
-              onMouseMove={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
-                const y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100));
-                setOrigin(`${x}% ${y}%`);
-              }}
-            >
-              <img
-                src={activeImage}
-                alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-200 cursor-zoom-in"
-                style={{ transformOrigin: origin, transform: zoom ? "scale(2)" : "scale(1)" }}
-              />
+            <ProductImageZoom src={activeImage} alt={product.name}>
               {gallery.length > 1 && !selectedSize && (
                 <>
                   <button
                     type="button"
-                    onClick={() => setGalleryIndex((i) => (i - 1 + gallery.length) % gallery.length)}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                    onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i - 1 + gallery.length) % gallery.length); }}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                     aria-label="Imagen anterior"
                   >
                     <ChevronLeft className="h-4 w-4" />
                   </button>
                   <button
                     type="button"
-                    onClick={() => setGalleryIndex((i) => (i + 1) % gallery.length)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-background/80 p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
+                    onClick={(e) => { e.stopPropagation(); setGalleryIndex((i) => (i + 1) % gallery.length); }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-10 rounded-full bg-background/80 p-2 shadow opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background"
                     aria-label="Imagen siguiente"
                   >
                     <ChevronRight className="h-4 w-4" />
                   </button>
                 </>
               )}
-            </div>
+            </ProductImageZoom>
             {gallery.length > 1 && !selectedSize && (
               <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                 {gallery.map((src, idx) => (
